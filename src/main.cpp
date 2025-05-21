@@ -9,6 +9,7 @@
 
 using HighPrecision = boost::multiprecision::cpp_dec_float_100;
 
+// For simple testing on time.
 template <typename F, typename ...Args>
 auto TimeCounterDecorator(F&& f, Args&&... args)
 {
@@ -32,6 +33,7 @@ int main()
     p.lambda = 0.01;
 
     HighPrecision t = HighPrecision("1e-30");
-    auto res = RhoPhiStiff(p, t);
+    auto res = RhoChiStiff(p, t);
+
     std::cout << res;
 }

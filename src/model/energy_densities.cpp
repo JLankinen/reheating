@@ -2,42 +2,53 @@
 #include <cmath>
 #include <numbers>
 #include <functional>
+#include <map>
+#include <mutex>
 #include <iostream>
 #include <boost/math/quadrature/gauss_kronrod.hpp>
+#include <boost/math/quadrature/tanh_sinh.hpp>
 #include <boost/math/tools/roots.hpp>
 #include "energy_densities.hpp"
 #include "parameters/parameters.hpp"
 #include "model/creation_decay.hpp"
 
 using boost::math::quadrature::gauss_kronrod;
+using boost::math::quadrature::tanh_sinh;
 using boost::math::tools::toms748_solve;
 using boost::math::tools::eps_tolerance;
 
 using HighPrecision = boost::multiprecision::cpp_dec_float_100;
 
 ModelParameters p;
+std::map<HighPrecision, HighPrecision> rhoPhiCache;
+std::mutex cacheMutex;
 
-template <typename F, typename ...Args>
-auto TimeCounterDecorator(F&& f, Args&&... args)
-{
-    auto start = std::chrono::high_resolution_clock::now();
-    auto result = std::invoke(std::forward<F>(f), std::forward<Args>(args)...);
-    auto end = std::chrono::high_resolution_clock::now();
-    auto duration = std::chrono::duration_cast<std::chrono::microseconds>(end - start);
-    std::cout << "Elapsed time: " << duration.count()  << " µs" << std::endl;
-    return result;
-}
 
 HighPrecision RhoStiff(HighPrecision t)
 {
     return HighPrecision(1) / (HighPrecision(24.0) * std::numbers::pi * p.G_N * pow(t, HighPrecision(2.0)));
 }
 
+HighPrecision quantize(const HighPrecision& value, int digits = 30) {
+    std::ostringstream oss;
+    oss << std::setprecision(digits) << std::fixed << value;
+    return HighPrecision(oss.str());
+}
 
 HighPrecision RhoPhiStiff(ModelParameters p, HighPrecision t)
 {
-    constexpr double n = 1.0;  // For stiff matter universe, n = 1.
-    constexpr double tol = 1e-8;
+    constexpr double n = 1.0;
+    constexpr double tol = 1e-15;
+
+    HighPrecision key = quantize(t, 30);  // Quantize to 30 digits for cache key
+
+    {
+        std::lock_guard<std::mutex> lock(cacheMutex);
+        auto it = rhoPhiCache.find(key);
+        if (it != rhoPhiCache.end()) {
+            return it->second;
+        }
+    }
     
     HighPrecision prefactor = (HighPrecision(1.0) / t) * exp(-ChiDecayRate(p, n, p.t0, t));
 
@@ -45,29 +56,35 @@ HighPrecision RhoPhiStiff(ModelParameters p, HighPrecision t)
     {
         HighPrecision creationRate = PhiCreationRate(p, tprime);
         HighPrecision decayRate = ChiDecayRate(p, n, p.t0, tprime);
-        HighPrecision val = tprime * creationRate * exp(decayRate);
-        std::cout << "RhoPhiStiff:\t" << "tprime: " << tprime << ", integrand: " << val << std::endl;
+        HighPrecision logVal = log(tprime) + log(creationRate) + decayRate;
+        HighPrecision val = exp(logVal);
         return val;
     };
 
     static gauss_kronrod<HighPrecision, 31> integrator;
     HighPrecision integralResult = integrator.integrate(integrand, p.t0, t, tol);
-    std::cout << "RhoPhiStiff Integral: " << prefactor * integralResult << std::endl;
-    return prefactor * integralResult;
+    HighPrecision result = prefactor * integralResult;
 
+    {
+        std::lock_guard<std::mutex> lock(cacheMutex);
+        rhoPhiCache[key] = result;
+    }
+
+    return result;
 }
 
 
 HighPrecision RhoChiStiff(ModelParameters p, HighPrecision t)
 {
     constexpr double n = 1.0;  // For stiff matter universe, n = 1.
-    constexpr double tol = 1e-8;
+    constexpr double tol = 1e-15;
     
     HighPrecision prefactor = 1 / pow(t, HighPrecision(4.0 / 3.0));
     
     auto integrand = [&](HighPrecision tprime)
     {
-        return ChiDecayRate(p, n, p.t0, tprime) * RhoPhiStiff(p, tprime) * pow(t, HighPrecision(4.0) / HighPrecision(3.0));
+        HighPrecision val = ChiDecayRate(p, n, p.t0, tprime) * RhoPhiStiff(p, tprime) * pow(t, HighPrecision(4.0) / HighPrecision(3.0));
+        return val;
     };
 
     static gauss_kronrod<HighPrecision, 31> integrator;
