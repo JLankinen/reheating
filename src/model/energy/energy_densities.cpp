@@ -5,17 +5,17 @@
 #include <map>
 #include <mutex>
 #include <future>
+#include <utility>
 #include <iostream>
 #include <boost/math/quadrature/gauss_kronrod.hpp>
 #include <boost/math/tools/roots.hpp>
 #include "energy_densities.hpp"
 #include "parameters/parameters.hpp"
-#include "model/creation_decay.hpp"
+#include "model/energy/creation_decay.hpp"
 
 using boost::math::quadrature::gauss_kronrod;
 using boost::math::tools::toms748_solve;
 using boost::math::tools::eps_tolerance;
-
 using HighPrecision = boost::multiprecision::cpp_dec_float_100;
 
 std::map<HighPrecision, HighPrecision> rhoPhiCache;
@@ -92,10 +92,20 @@ HighPrecision RhoChiStiff(ModelParameters p, HighPrecision t)
 }
 
 
-HighPrecision EqualTime(std::function<HighPrecision(ModelParameters, HighPrecision t)> f1,
-                 std::function<HighPrecision(ModelParameters, HighPrecision t)> f2,
-                 std::function<HighPrecision(ModelParameters, HighPrecision t)> restrictionFunc,
-                 ModelParameters p,
+HighPrecision RhoPhiMat(ModelParameters p, HighPrecision t0, HighPrecision t, HighPrecision rhoPhiEq)
+{
+    // n = 4 in matter dominated Universe
+    constexpr double n = 4.0;
+    HighPrecision time = pow(t0, HighPrecision(2.0 / 3.0)) / pow(t, HighPrecision(2.0 / 3.0));
+    return pow(time, 3) * exp(-ChiDecayRate(p, n, t0, t)) * rhoPhiEq;  // Save RhoPhiStiff(t_eq)
+}
+
+
+
+std::pair<HighPrecision, HighPrecision> EqualTime(std::function<HighPrecision(ModelParameters, HighPrecision t)> &f1,
+                 std::function<HighPrecision(ModelParameters, HighPrecision t)> &f2,
+                 std::function<HighPrecision(ModelParameters, HighPrecision t)> &restrictionFunc,
+                 ModelParameters &p,
                  HighPrecision lowerLimit,
                  HighPrecision upperLimit)
 {
@@ -122,10 +132,11 @@ HighPrecision EqualTime(std::function<HighPrecision(ModelParameters, HighPrecisi
     auto result = toms748_solve(h, lowerLimit, upperLimit, fa, fb, eps_tolerance<HighPrecision>(digits), max_iter);
     HighPrecision timeEquality = (result.first + result.second) / HighPrecision(2.0);
 
+    HighPrecision f2Equal = f2(p, timeEquality);
     // Check for constraint
-    if(f2(p, timeEquality) > restrictionFunc(p, timeEquality))
+    if(f2Equal > restrictionFunc(p, timeEquality))
     {
-        return timeEquality;
+        return {timeEquality, f2Equal};
     }
     else
     {

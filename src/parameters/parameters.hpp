@@ -1,10 +1,9 @@
-#include <boost/multiprecision/cpp_dec_float.hpp>
-using HighPrecision = boost::multiprecision::cpp_dec_float_100;
-
 #ifndef PARAMS_H_
 #define PARAMS_H_
 
 #include <cmath>
+#include <boost/multiprecision/cpp_dec_float.hpp>
+using HighPrecision = boost::multiprecision::cpp_dec_float_100;
 
 struct ModelParameters
 {
