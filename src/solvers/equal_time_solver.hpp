@@ -3,9 +3,7 @@
 
 #include <functional>
 #include "parameters/parameters.hpp"
-
-using EnergyDensity = std::function<HighPrecision(ModelParameters, HighPrecision t)>;
-
+#include "utils/types.hpp"
 /**
  * @class EqualTimeSolver
  * @brief Finds the time when two energy density functions are equal within a specified interval.
@@ -30,10 +28,10 @@ class EqualTimeSolver
         HighPrecision upperLimit;
         bool hasRestriction;
     public:
-        EqualTimeSolver(EnergyDensity _rho1, EnergyDensity _rho2, ModelParameters _p, HighPrecision _lowerLimit, HighPrecision _upperLimit):
+        EqualTimeSolver(EnergyDensity& _rho1, EnergyDensity& _rho2, ModelParameters& _p, HighPrecision _lowerLimit, HighPrecision _upperLimit):
         rho1{_rho1}, rho2{_rho2}, p{_p}, lowerLimit{_lowerLimit}, upperLimit{_upperLimit}, hasRestriction{false} {};
 
-        EqualTimeSolver& withRestriction(EnergyDensity rho3);
+        EqualTimeSolver& withRestriction(EnergyDensity& rho3);
         HighPrecision getEqualTime();
 
 };

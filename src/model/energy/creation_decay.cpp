@@ -6,7 +6,6 @@
 #include <boost/math/special_functions/bessel.hpp>
 #include <cmath>
 #include "creation_decay.hpp"
-#include <complex>
 
 using boost::math::cyl_hankel_1;
 using boost::math::cyl_hankel_2;
@@ -16,7 +15,7 @@ using boost::math::cyl_bessel_j;
 using boost::math::cyl_neumann;
 using HighPrecision = boost::multiprecision::cpp_dec_float_100;
 
-HighPrecision PhiCreationRate(ModelParameters p, HighPrecision t)
+HighPrecision PhiCreationRate(ModelParameters& p, HighPrecision t)
 {
     HighPrecision arg = -pow((HighPrecision(3.0) * p.m * t / HighPrecision(2.0)), HighPrecision(2.0) / HighPrecision(3.0));
 
@@ -31,7 +30,7 @@ HighPrecision PhiCreationRate(ModelParameters p, HighPrecision t)
 }
 
 
-HighPrecision ChiDecayRate(ModelParameters p, HighPrecision n, HighPrecision t0, HighPrecision t)
+HighPrecision ChiDecayRate(ModelParameters& p, HighPrecision n, HighPrecision t0, HighPrecision t)
 {
     HighPrecision arg = HighPrecision(p.m * t);
     HighPrecision argt0 = HighPrecision(p.m * t0);
