@@ -7,7 +7,7 @@
 /**
  * Stiff matter energy density
  */
-HighPrecision RhoStiff(HighPrecision t);
+HighPrecision RhoStiff(ModelParameters p, HighPrecision t);
 
 /**
  * Energy density for massive phi particles during stiff matter era.
@@ -22,7 +22,7 @@ HighPrecision RhoChiStiff(ModelParameters p, HighPrecision t);
 /**
  * Calculate t_eq for stiff matter and massive particle energy densities.
  */
-HighPrecision EqualTime(std::function<HighPrecision(HighPrecision t)> rhoStiff,
+HighPrecision EqualTime(std::function<HighPrecision(ModelParameters, HighPrecision t)> rhoStiff,
                  std::function<HighPrecision(ModelParameters, HighPrecision t)> rhoPhiStiff,
                  std::function<HighPrecision(ModelParameters, HighPrecision t)> restrictionFunc,
                  ModelParameters p,

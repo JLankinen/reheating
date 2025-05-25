@@ -4,36 +4,35 @@
 #include <functional>
 #include <map>
 #include <mutex>
+#include <future>
 #include <iostream>
 #include <boost/math/quadrature/gauss_kronrod.hpp>
-#include <boost/math/quadrature/tanh_sinh.hpp>
 #include <boost/math/tools/roots.hpp>
 #include "energy_densities.hpp"
 #include "parameters/parameters.hpp"
 #include "model/creation_decay.hpp"
 
 using boost::math::quadrature::gauss_kronrod;
-using boost::math::quadrature::tanh_sinh;
 using boost::math::tools::toms748_solve;
 using boost::math::tools::eps_tolerance;
 
 using HighPrecision = boost::multiprecision::cpp_dec_float_100;
 
-ModelParameters p;
 std::map<HighPrecision, HighPrecision> rhoPhiCache;
 std::mutex cacheMutex;
-
-
-HighPrecision RhoStiff(HighPrecision t)
-{
-    return HighPrecision(1) / (HighPrecision(24.0) * std::numbers::pi * p.G_N * pow(t, HighPrecision(2.0)));
-}
 
 HighPrecision quantize(const HighPrecision& value, int digits = 30) {
     std::ostringstream oss;
     oss << std::setprecision(digits) << std::fixed << value;
     return HighPrecision(oss.str());
 }
+
+
+HighPrecision RhoStiff(ModelParameters p, HighPrecision t)
+{
+    return HighPrecision(1) / (HighPrecision(24.0) * std::numbers::pi * p.G_N * pow(t, HighPrecision(2.0)));
+}
+
 
 HighPrecision RhoPhiStiff(ModelParameters p, HighPrecision t)
 {
@@ -61,7 +60,7 @@ HighPrecision RhoPhiStiff(ModelParameters p, HighPrecision t)
         return val;
     };
 
-    static gauss_kronrod<HighPrecision, 31> integrator;
+    static gauss_kronrod<HighPrecision, 10> integrator;
     HighPrecision integralResult = integrator.integrate(integrand, p.t0, t, tol);
     HighPrecision result = prefactor * integralResult;
 
@@ -87,13 +86,13 @@ HighPrecision RhoChiStiff(ModelParameters p, HighPrecision t)
         return val;
     };
 
-    static gauss_kronrod<HighPrecision, 31> integrator;
+    static gauss_kronrod<HighPrecision, 10> integrator;
     HighPrecision integralResult = integrator.integrate(integrand, p.t0, t, tol);
     return prefactor * integralResult;
 }
 
 
-HighPrecision EqualTime(std::function<HighPrecision(HighPrecision t)> f1,
+HighPrecision EqualTime(std::function<HighPrecision(ModelParameters, HighPrecision t)> f1,
                  std::function<HighPrecision(ModelParameters, HighPrecision t)> f2,
                  std::function<HighPrecision(ModelParameters, HighPrecision t)> restrictionFunc,
                  ModelParameters p,
@@ -103,15 +102,25 @@ HighPrecision EqualTime(std::function<HighPrecision(HighPrecision t)> f1,
 
     // Function difference
     auto h = [&](HighPrecision t) -> HighPrecision {
-        return f1(t) - f2(p, t);
+        // Run f1 and f2 asynchronously
+        auto val1_fut = std::async(std::launch::async, f1, p, t);
+        auto val2_fut = std::async(std::launch::async, f2, p, t);
+        HighPrecision val1 = val1_fut.get();
+        HighPrecision val2 = val2_fut.get();
+        return val1 - val2;
     };
 
     const int digits = std::numeric_limits<HighPrecision>::digits;
     HighPrecision fa = h(lowerLimit);
     HighPrecision fb = h(upperLimit);
+
+    if (fa * fb >= 0) {
+        throw std::runtime_error("No root found.");
+    }
+
     std::uintmax_t max_iter = 10;
     auto result = toms748_solve(h, lowerLimit, upperLimit, fa, fb, eps_tolerance<HighPrecision>(digits), max_iter);
-    auto timeEquality = (result.first + result.second) / 2.0;
+    HighPrecision timeEquality = (result.first + result.second) / HighPrecision(2.0);
 
     // Check for constraint
     if(f2(p, timeEquality) > restrictionFunc(p, timeEquality))
