@@ -5,7 +5,7 @@
 #include <boost/math/special_functions/airy.hpp>
 #include <boost/math/special_functions/bessel.hpp>
 #include <cmath>
-#include "creation_decay.hpp"
+#include "model/energy/creation_decay.hpp"
 
 using boost::math::cyl_hankel_1;
 using boost::math::cyl_hankel_2;

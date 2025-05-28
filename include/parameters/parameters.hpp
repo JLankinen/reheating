@@ -12,7 +12,7 @@ struct ModelParameters
     HighPrecision lambda;       // Dimensionless coupling constant << 1.
     HighPrecision b;            // Dimensionless expansion parameter.
     HighPrecision xi;           // Gravitational coupling.
-    HighPrecision G_N = HighPrecision("6.708e-39"); // Gravitational constant in GeV^-2
+    HighPrecision G_N = 1.0;//HighPrecision("6.708e-39"); // Gravitational constant in GeV^-2
     HighPrecision n;            // Universe matter content; n = 0 Minkowskian, n = 1 stiff, n = 2 radiation, n = 4 matter.
     HighPrecision alpha(HighPrecision n);
 
