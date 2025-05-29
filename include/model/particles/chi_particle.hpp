@@ -24,6 +24,7 @@ class ChiParticle
   
         // Returns RhoChiStiff as a function of t.
         EnergyDensity energyDensityStiff();
+        EnergyDensity energyDensityMatter(HighPrecision t0, HighPrecision initialRho);
 };
 
 

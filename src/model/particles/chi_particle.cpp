@@ -1,10 +1,9 @@
 #include <cmath>
-#include <boost/math/quadrature/gauss_kronrod.hpp>
 
 #include "model/particles/chi_particle.hpp"
 #include "model/energy/creation_decay.hpp"
+#include "utils/integration.hpp"
 
-using boost::math::quadrature::gauss_kronrod;
 
 EnergyDensity ChiParticle::energyDensityStiff()
 {
@@ -22,9 +21,7 @@ EnergyDensity ChiParticle::energyDensityStiff()
             return val;
         };
     
-        static gauss_kronrod<HighPrecision, 21> integrator;
-        HighPrecision integralResult = integrator.integrate(integrand, this->p.t0, t, tol);
+        HighPrecision integralResult = IntegrationUtils::integrate(integrand, this->p.t0, t, tol);
         return prefactor * integralResult;
     };
 }
-

@@ -26,6 +26,8 @@ class PhiParticle
 
         EnergyDensity energyDensityStiff();
         EnergyDensity energyDensityMatter(HighPrecision t0, HighPrecision intialRho);
+        EnergyDensity energyDensityRadiation(HighPrecision t0, HighPrecision initialRho);
+
 };
 
 #endif
