@@ -3,14 +3,16 @@
 
 #include <map>
 #include <mutex>
+#include <optional>
+
 #include "parameters/parameters.hpp"
 #include "utils/types.hpp"
 
 /**
  * @brief Represents the massive Phi particle in the model.
  * 
- * This class provides methods related to the energy density evolution
- * of the massive phi particle. 
+ * This class traces the evolution of a massive Phi particle and provides methods related to the
+ * energy density evolution of the massive phi particle. 
  * 
  * Returns an energy density function which can be used in solvers
  * or further analysis.
@@ -21,12 +23,20 @@ class PhiParticle
         ModelParameters p;
         static std::map<HighPrecision, HighPrecision> rhoPhiCache;
         static std::mutex cacheMutex;
+        HighPrecision initialRhoMatter;
+        HighPrecision initialRhoRadiation;
     public:
         explicit PhiParticle(const ModelParameters& _p) : p{_p} {};
-
         EnergyDensity energyDensityStiff();
-        EnergyDensity energyDensityMatter(HighPrecision t0, HighPrecision intialRho);
-        EnergyDensity energyDensityRadiation(HighPrecision t0, HighPrecision initialRho);
+        EnergyDensity energyDensityMatter(HighPrecision t0);
+        EnergyDensity energyDensityRadiation(HighPrecision t0);
+        // Getters and Setters to set initial values once obtained
+        void setInitialRhoMatter(const HighPrecision& rhoInit);
+        HighPrecision getInitialRhoMatter() const;
+        void setInitialRhoRadiation(const HighPrecision& rhoInit);
+        HighPrecision getInitialRhoRadiation() const;
+
+
 
 };
 

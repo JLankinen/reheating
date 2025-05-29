@@ -15,13 +15,33 @@ HighPrecision quantize(const HighPrecision& value, int digits = 30) {
     return HighPrecision(oss.str());
 }
 
+void PhiParticle::setInitialRhoMatter(const HighPrecision& rhoInit)
+{
+    this->initialRhoMatter = rhoInit;
+}
+
+HighPrecision PhiParticle::getInitialRhoMatter() const
+{
+    return initialRhoMatter;
+}
+
+void PhiParticle::setInitialRhoRadiation(const HighPrecision& rhoInit)
+{
+    this->initialRhoRadiation = rhoInit;
+}
+
+HighPrecision PhiParticle::getInitialRhoRadiation() const
+{
+    return initialRhoRadiation;
+}
+
+
 
 EnergyDensity PhiParticle::energyDensityStiff()
 {
     return [this](HighPrecision t) -> HighPrecision
     {
         constexpr double n = 1.0;
-        constexpr double tol = 1e-15;
 
         HighPrecision key = quantize(t, 30);  // Quantize to 30 digits for cache key
 
@@ -44,7 +64,7 @@ EnergyDensity PhiParticle::energyDensityStiff()
             return val;
         };
 
-        HighPrecision integralResult = IntegrationUtils::integrate(integrand, this->p.t0, t, tol);
+        HighPrecision integralResult = IntegrationUtils::integrate(integrand, this->p.t0, t);
         HighPrecision result = prefactor * integralResult;
 
         {
@@ -57,23 +77,23 @@ EnergyDensity PhiParticle::energyDensityStiff()
 }
 
 
-EnergyDensity PhiParticle::energyDensityMatter(HighPrecision t0, HighPrecision initialRho)
+EnergyDensity PhiParticle::energyDensityMatter(HighPrecision t0)
 {
-    return [this, t0, initialRho](HighPrecision t)->HighPrecision{
+    return [this, t0](HighPrecision t)->HighPrecision{
         // n = 4 in matter dominated Universe
         constexpr double n = 4.0;
         HighPrecision time = pow(t0, HighPrecision(2.0 / 3.0)) / pow(t, HighPrecision(2.0 / 3.0));
-        return pow(time, HighPrecision(3)) * exp(-ChiDecayRate(this->p, n, t0, t)) * initialRho;
+        return pow(time, HighPrecision(3)) * exp(-ChiDecayRate(this->p, n, t0, t)) * this->getInitialRhoMatter();
     };
 }
 
 
-EnergyDensity PhiParticle::energyDensityRadiation(HighPrecision t0, HighPrecision initialRho)
+EnergyDensity PhiParticle::energyDensityRadiation(HighPrecision t0)
 {
-    return [this, t0, initialRho](HighPrecision t)->HighPrecision{
+    return [this, t0](HighPrecision t)->HighPrecision{
         // n = 2 in matter dominated Universe
         constexpr double n = 2.0;
         HighPrecision time = pow(t0, HighPrecision(1.0 / 2.0)) / pow(t, HighPrecision(1.0 / 2.0));
-        return pow(time, HighPrecision(3)) * exp(-ChiDecayRate(this->p, n, t0, t)) * initialRho;
+        return pow(time, HighPrecision(3)) * exp(-ChiDecayRate(this->p, n, t0, t)) * this->getInitialRhoRadiation();
     };    
 }
