@@ -20,19 +20,32 @@
  */
 class EqualTimeSolver
 {
+    public:
+        enum class Method
+        {
+            Toms748,
+            Bisect
+        };
     private:
         EnergyDensity rho1;
         EnergyDensity rho2;
         EnergyDensity restriction;
         HighPrecision lowerLimit;
+        HighPrecision upperLimit = HighPrecision("1e-15");
         bool hasRestriction = false;
-        std::uintmax_t maxIter = 10;
+        std::uintmax_t maxIter = 20;
+        Method method = Method::Toms748;
+        std::tuple<HighPrecision, HighPrecision, HighPrecision> toms748Method();
+        std::tuple<HighPrecision, HighPrecision, HighPrecision> bisectMethod();
     public:
         EqualTimeSolver(EnergyDensity _rho1, EnergyDensity _rho2, HighPrecision _lowerLimit):
         rho1{_rho1}, rho2{_rho2}, lowerLimit{_lowerLimit} {};
 
         EqualTimeSolver& withRestriction(EnergyDensity rho3);
-        EqualTimeSolver& maxIterations(std::uintmax_t maxIter);
+        EqualTimeSolver& usingMethod(Method meth);
+        void setUpperLimit(HighPrecision ul);
+
+
         /**
          * @brief Find rooting bracket used in the Toms 748 solver in getEqualTime.
          */

@@ -22,13 +22,12 @@ class ChiParticle
 {
     private:
         ModelParameters p;
-        EnergyDensity rhoPhi;
         std::shared_ptr<PhiParticle> phiParticle;
         HighPrecision initialRhoMatter;
         HighPrecision initialRhoRadiation;
     public:
-        explicit ChiParticle(const ModelParameters& _p, EnergyDensity _rhoPhi, std::shared_ptr<PhiParticle> phi) :
-        p{_p}, rhoPhi{_rhoPhi}, phiParticle(std::move(phi)) {};
+        explicit ChiParticle(const ModelParameters& _p, std::shared_ptr<PhiParticle> phi) :
+        p{_p}, phiParticle(std::move(phi)) {};
   
         // Returns RhoChiStiff as a function of t.
         EnergyDensity energyDensityStiff();

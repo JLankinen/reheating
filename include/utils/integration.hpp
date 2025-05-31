@@ -12,7 +12,7 @@ namespace IntegrationUtils{
 template<typename F, typename T>
 T integrate(F&& f, T lower, T upper, double tol = 1e-15)
 {
-    static gauss_kronrod<T, 21> integrator;
+    static gauss_kronrod<T, 31> integrator;
     return integrator.integrate(std::forward<F>(f), lower, upper, tol);
 }
 
