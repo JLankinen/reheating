@@ -21,12 +21,13 @@ class PhiParticle
 {
     private:
         ModelParameters p;
-        static std::map<HighPrecision, HighPrecision> rhoPhiCache;
-        static std::mutex cacheMutex;
+        std::map<HighPrecision, HighPrecision> rhoPhiCache;
+        std::mutex cacheMutex;
         HighPrecision initialRhoMatter;
         HighPrecision initialRhoRadiation;
     public:
         explicit PhiParticle(const ModelParameters& _p) : p{_p} {};
+        HighPrecision creationRate(HighPrecision t);
         EnergyDensity energyDensityStiff();
         EnergyDensity energyDensityMatter(HighPrecision t0);
         EnergyDensity energyDensityRadiation(HighPrecision t0);

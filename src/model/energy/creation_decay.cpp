@@ -34,7 +34,7 @@ ChiDecayRate::ChiDecayRate(ModelParameters& p_, HighPrecision n_, HighPrecision 
         p{p_}, n{n_}, t0{t0_}, alpha{p_.alpha(n_)}
         {
             HighPrecision argt0 = HighPrecision(p.m * t0);
-            HighPrecision factor2 = pow(p.lambda * t0, HighPrecision(2.0)) / HighPrecision(62.0);
+            HighPrecision factor2 = pow(p.lambda * t0, HighPrecision(2.0)) / HighPrecision(64.0);
 
 
             HighPrecision J_alpha_t0  = boost::math::cyl_bessel_j(alpha, argt0);
@@ -55,7 +55,7 @@ ChiDecayRate::ChiDecayRate(ModelParameters& p_, HighPrecision n_, HighPrecision 
 HighPrecision ChiDecayRate::operator()(HighPrecision t) const
         {
             HighPrecision arg = HighPrecision(p.m * t);
-            HighPrecision factor1 = pow(p.lambda * t, HighPrecision(2.0)) / HighPrecision(62.0);
+            HighPrecision factor1 = pow(p.lambda * t, HighPrecision(2.0)) / HighPrecision(64.0);
             // Bessel functions for t
             HighPrecision J_alpha_t  = boost::math::cyl_bessel_j(alpha, arg);
             HighPrecision J_alpha1_t = boost::math::cyl_bessel_j(alpha - HighPrecision(1), arg);

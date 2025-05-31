@@ -6,9 +6,6 @@
 #include "utils/integration.hpp"
 
 
-std::map<HighPrecision, HighPrecision> PhiParticle::rhoPhiCache;
-std::mutex PhiParticle::cacheMutex;
-
 HighPrecision quantize(const HighPrecision& value, int digits = 30) {
     std::ostringstream oss;
     oss << std::setprecision(digits) << std::fixed << value;
@@ -35,7 +32,19 @@ HighPrecision PhiParticle::getInitialRhoRadiation() const
     return initialRhoRadiation;
 }
 
+HighPrecision PhiParticle::creationRate(HighPrecision t)
+{
+    HighPrecision arg = -pow((HighPrecision(3.0) * p.m * t / HighPrecision(2.0)), HighPrecision(2.0) / HighPrecision(3.0));
 
+    HighPrecision airyAi = boost::math::airy_ai(arg);
+    HighPrecision airyBi = boost::math::airy_bi(arg);
+
+    HighPrecision airySum = pow(airyAi, 2.0) + pow(airyBi, 2.0);
+
+    HighPrecision factor = HighPrecision(3.0) * pow(p.m * p.b, HighPrecision(13.0) / HighPrecision(3.0)) / (HighPrecision(32.0) * p.b);
+
+    return factor * t * airySum;
+}
 
 EnergyDensity PhiParticle::energyDensityStiff()
 {
@@ -45,12 +54,12 @@ EnergyDensity PhiParticle::energyDensityStiff()
     return [this, chiDecay](HighPrecision t) -> HighPrecision
     {
 
-        HighPrecision key = quantize(t, 30);  // Quantize to 30 digits for cache key
+       HighPrecision key = quantize(t, 30);  // Quantize to 30 digits for cache key
 
         {
-            std::lock_guard<std::mutex> lock(cacheMutex);
-            auto it = rhoPhiCache.find(key);
-            if (it != rhoPhiCache.end()) {
+            std::lock_guard<std::mutex> lock(this->cacheMutex);
+            auto it = this->rhoPhiCache.find(key);
+            if (it != this->rhoPhiCache.end()) {
                 return it->second;
             }
         }
@@ -59,10 +68,7 @@ EnergyDensity PhiParticle::energyDensityStiff()
 
         auto integrand = [&](HighPrecision tprime)
         {
-            HighPrecision creationRate = PhiCreationRate(this->p, tprime);
-            HighPrecision decayRate = chiDecay(tprime);
-            HighPrecision logVal = log(tprime) + log(creationRate) + decayRate;
-            HighPrecision val = exp(logVal);
+            HighPrecision val = tprime * this->creationRate(tprime) * exp(chiDecay(tprime));
             return val;
         };
 
@@ -70,9 +76,10 @@ EnergyDensity PhiParticle::energyDensityStiff()
         HighPrecision result = prefactor * integralResult;
 
         {
-            std::lock_guard<std::mutex> lock(cacheMutex);
-            rhoPhiCache[key] = result;
+            std::lock_guard<std::mutex> lock(this->cacheMutex);
+            this->rhoPhiCache[key] = result;
         }
+
 
         return result;
     };

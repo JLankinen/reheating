@@ -55,11 +55,11 @@ EnergyDensity ChiParticle::energyDensityMatter(HighPrecision t0)
 
     return [this, t0, chiDecay](HighPrecision t)->HighPrecision{
         HighPrecision initialRho = this->getInitialRhoMatter() * pow(t0 / t, HighPrecision(8.0 / 3.0));
-        HighPrecision prefactor = pow(t, - HighPrecision(8.0 / 3.0));
+        HighPrecision prefactor = pow((1 / t), HighPrecision(8.0 / 3.0));
         EnergyDensity rhoMat = phiParticle->energyDensityMatter(t0);
         auto integrand = [&] (HighPrecision tprime)
         {
-            HighPrecision val = chiDecay(tprime) * rhoMat(tprime) * pow(tprime, (8.0 / 3.0));
+            HighPrecision val = chiDecay(tprime) * rhoMat(tprime) * pow(tprime, HighPrecision(8.0 / 3.0));
             return val;
         };
 
