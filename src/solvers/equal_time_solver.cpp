@@ -6,14 +6,8 @@
 #include <algorithm>
 
 using boost::math::tools::toms748_solve;
+using boost::math::tools::bisect;
 using boost::math::tools::eps_tolerance;
-
-EqualTimeSolver& EqualTimeSolver::maxIterations(std::uintmax_t max)
-{
-    maxIter = max;
-    return *this;
-}
-
 
 EqualTimeSolver& EqualTimeSolver::withRestriction(EnergyDensity rho3)
 {
@@ -22,26 +16,87 @@ EqualTimeSolver& EqualTimeSolver::withRestriction(EnergyDensity rho3)
     return *this; 
 }
 
+EqualTimeSolver& EqualTimeSolver::usingMethod(Method meth)
+{
+    method = meth;
+    return *this;
+}
+
+void EqualTimeSolver::setUpperLimit(HighPrecision ul)
+{
+    this->upperLimit = ul;
+}
+
 
 std::tuple<HighPrecision, HighPrecision, HighPrecision> EqualTimeSolver::getEqualTime()
 {
+    switch (method)
+    {
+    case Method::Toms748:
+        return toms748Method();
+    case Method::Bisect:
+        return bisectMethod();
+    default:
+        throw std::runtime_error("No root finding method selected.");
+    }
+}
+
+/**
+ * Custom bracketing function. Increases upper limit by times 10^2 until sign change is found (this will
+ * happen at some point) and returns the found bracket to be used in Toms method.
+ */
+std::tuple<HighPrecision, HighPrecision> findBracket(EnergyDensity h, HighPrecision low)
+{
+    HighPrecision fa = h(low);
+    HighPrecision high = low * HighPrecision("1e5");
+    HighPrecision fb = h(high);
+    const int maxAttempts = 100;
+    int attempts = 0;
+    // Increase upperlimit until bracket is found. Equations show this will happen at some point.
+    if (fa > 0)
+    {
+        while (fb > 0 && attempts < maxAttempts)
+        {
+            high = high * HighPrecision("1e2");
+            fb = h(high);
+            attempts++;
+        }
+    }
+    else if (fa < 0)
+    {
+        while (fb < 0 && attempts < maxAttempts)
+        {
+            high = high * HighPrecision("1e2");
+            fb = h(high);
+            attempts++;
+        }
+    }
+    return std::make_tuple(low, high);
+}
+
+std::tuple<HighPrecision, HighPrecision, HighPrecision> EqualTimeSolver::toms748Method()
+{
         // Function difference
         auto h = [&](HighPrecision t) -> HighPrecision {
-            // Run rho1 and rho2 asynchronously
-            auto val1_fut = std::async(std::launch::async, rho1, t);
-            auto val2_fut = std::async(std::launch::async, rho2, t);
-            HighPrecision val1 = val1_fut.get();
-            HighPrecision val2 = val2_fut.get();
-            return val1 - val2;
+            HighPrecision val1 = rho1(t);
+            HighPrecision val2 = rho2(t);
+            HighPrecision result = val1 - val2;
+            std::cout << "  [TOMS748] Evaluating h(t): t = " << t << ", rho1(t) = " << val1 << ", rho2(t)= " << val2 <<", h(t)= " << result << "\n";
+            return result;
         };
-        auto [low, high] = findBracket(h, lowerLimit);
+
+
+        std::pair<HighPrecision, HighPrecision> result;
+        //auto low = lowerLimit;
+        //auto high = upperLimit;
         const int digits = std::numeric_limits<HighPrecision>::digits;
+        auto [low, high] = findBracket(h, lowerLimit);
+        //std::cout << "  [TOMS748] Using brackets: [a, b]=[" << low << ", " << high << "]" << std::endl;
         HighPrecision fa = h(low);
         HighPrecision fb = h(high);
+        result = toms748_solve(h, low, high, fa, fb, eps_tolerance<HighPrecision>(digits), maxIter);
 
-        auto result = toms748_solve(h, low, high, fa, fb, eps_tolerance<HighPrecision>(digits), maxIter);
         HighPrecision timeEquality = (result.first + result.second) / HighPrecision(2.0);
-    
         HighPrecision rho1Equal = rho1(timeEquality);
         HighPrecision rho2Equal = rho2(timeEquality);
         // Check for constraint
@@ -53,38 +108,28 @@ std::tuple<HighPrecision, HighPrecision, HighPrecision> EqualTimeSolver::getEqua
 }
 
 
-std::pair<HighPrecision, HighPrecision> EqualTimeSolver::findBracket(const EnergyDensity& rho,
-                                                                     HighPrecision t0,
-                                                                     HighPrecision initialStep,
-                                                                     HighPrecision maxStep,
-                                                                     HighPrecision growthFactor,
-                                                                     int maxAttempts)
+std::tuple<HighPrecision, HighPrecision, HighPrecision> EqualTimeSolver::bisectMethod()
 {
-    HighPrecision a = t0;
-    HighPrecision fa = rho(a);
-    HighPrecision step = initialStep;
-    HighPrecision b = a + step;
-    HighPrecision fb = rho(b);
-    int attempts = 0;
+    // Function difference
+    auto h = [&](HighPrecision t) -> HighPrecision {
+        HighPrecision val1 = rho1(t);
+        HighPrecision val2 = rho2(t);
+        HighPrecision result = val1 - val2;
+        std::cout << "  [Bisect] Evaluating h(t): t = " << t << ", rho1(t) = " << val1 << ", rho2(t)= " << val2 <<", h(t)= " << result << "\n";
+        return result;
+    };
 
-    // Find the bracket by increasing the interval in steps.
-    while(fa * fb > 0 && attempts <= maxAttempts && step <= maxStep)
+    const int digits = std::numeric_limits<HighPrecision>::digits;
+    std::uintmax_t maxIter = 100;
+    auto result = bisect(h, lowerLimit, upperLimit, eps_tolerance<HighPrecision>(digits), maxIter);
+    HighPrecision eqTime = (result.first + result.second) / 2;
+
+    HighPrecision rho1Equal = rho1(eqTime);
+    HighPrecision rho2Equal = rho2(eqTime);
+    // Check for constraint
+    if (hasRestriction == true && !(rho2Equal > restriction(eqTime)))
     {
-        // Change bracket location
-        a = b;
-        fa = fb;
-        // Increase the right side.
-        step *= growthFactor;
-        b = a + step;
-        fb = rho(b);
-        ++attempts;
+        throw std::runtime_error("No time of equality with the given constraint.");
     }
-
-    if (fa * fb > 0)
-    {
-        throw std::runtime_error("Failed to bracket root.");
-    }
-
-    return {a, b};
+    return std::make_tuple(eqTime, rho1Equal, rho2Equal);
 }
-

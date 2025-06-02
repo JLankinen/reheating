@@ -18,6 +18,7 @@
  *
  * The solver performs asynchronous evaluation of rho1 and rho2 for improved performance.
  */
+
 class EqualTimeSolver
 {
     public:
@@ -44,18 +45,7 @@ class EqualTimeSolver
         EqualTimeSolver& withRestriction(EnergyDensity rho3);
         EqualTimeSolver& usingMethod(Method meth);
         void setUpperLimit(HighPrecision ul);
-
-
-        /**
-         * @brief Find rooting bracket used in the Toms 748 solver in getEqualTime.
-         */
-        std::pair<HighPrecision, HighPrecision> findBracket(const EnergyDensity& rho,
-                                                            HighPrecision t0,
-                                                            HighPrecision initialStep = HighPrecision("1e-35"),
-                                                            HighPrecision maxStep = HighPrecision("1e-28"),
-                                                            HighPrecision growthFactor = HighPrecision(1.5),
-                                                            int maxAttempts = 50);
-        
+       
         /**
          * @brief Get the time t_eq when rho1 and rho2 are equal i.e., rho1(t)=rho2(t).
          * 
