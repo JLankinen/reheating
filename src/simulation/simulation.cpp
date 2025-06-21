@@ -17,12 +17,27 @@ Simulation::Simulation(const ModelParameters& p_) :
     {};
   
 
-void Simulation::run()
+SimulationResults Simulation::run()
 {
     auto [t_eq, rhoStiffEq, rhoPhiEq] = runStiffPhase();
     auto [tau_eq, rhoPhiMatEq, rhoChiMatEq] = runMatterPhase(t_eq);
     auto [t_eq_rad, rhoPhiRadEq, rhoChiRadEq] = runRadiationPhase(tau_eq);
-    HighPrecision temp_rh = getReheatingTemperature(tau_eq, t_eq_rad);
+    auto [tempRH, timeRH] = getReheatingTemperatureAndTime(tau_eq, t_eq_rad);
+
+    return SimulationResults{
+        .params = p,
+        .reheating_temp = tempRH,
+        .reheating_time = timeRH,
+        .t_eq = t_eq,
+        .rhoStiff_t_eq = rhoStiffEq,
+        .rhoPhiStiff_t_eq = rhoPhiEq,
+        .tau_eq = tau_eq,
+        .rhoPhiMatEq = rhoPhiMatEq,
+        .rhoChiMatEq = rhoChiMatEq,
+        .tau2_eq = t_eq_rad,
+        .rhoPhiRadEq = rhoPhiRadEq,
+        .rhoChiRadEq = rhoChiRadEq  
+    };
 }
 
 
@@ -78,12 +93,12 @@ std::tuple<HighPrecision, HighPrecision, HighPrecision> Simulation::runRadiation
     return std::make_tuple(t_eq_rad, rhoPhiRadEq, rhoChiRadEq);
 }
 
-HighPrecision Simulation::getReheatingTemperature(HighPrecision tau_eq, HighPrecision tau2_eq)
+std::pair<HighPrecision, HighPrecision> Simulation::getReheatingTemperatureAndTime(HighPrecision tau_eq, HighPrecision tau2_eq)
 {
     EnergyDensity rhoChiRad = this->chi.energyDensityRadiation(tau_eq);
     auto t_rh = maximize(rhoChiRad, tau2_eq, tau2_eq * HighPrecision("1e5"));
     HighPrecision reheatingTemperature = IntegrationUtils::integrate(this->chi.energyDensityRadiation(tau2_eq), tau2_eq, t_rh);
     std::cout << "Reheating time: " << t_rh << ", Reheating temperature: " << pow(reheatingTemperature, HighPrecision(1.0 / 4.0)) << std::endl;
 
-    return reheatingTemperature;
+    return std::pair(reheatingTemperature, t_rh);
 }

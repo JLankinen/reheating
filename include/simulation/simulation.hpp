@@ -10,22 +10,6 @@
 #include "parameters/parameters.hpp"
 
 
-class Simulation
-{
-    private:
-        const ModelParameters& p;
-        std::shared_ptr<PhiParticle> phi;
-        ChiParticle chi;
-        StiffMatter stiff;
-        std::tuple<HighPrecision, HighPrecision, HighPrecision> runStiffPhase();
-        std::tuple<HighPrecision, HighPrecision, HighPrecision> runMatterPhase(HighPrecision t0);
-        std::tuple<HighPrecision, HighPrecision, HighPrecision> runRadiationPhase(HighPrecision t0);
-        HighPrecision getReheatingTemperature(HighPrecision rhoChiRad, HighPrecision t_eq);
-    public:
-        Simulation(const ModelParameters& p_);
-        void run();
-};
-
 struct SimulationResults
 {
     // Original model parameters
@@ -43,5 +27,24 @@ struct SimulationResults
     HighPrecision rhoPhiRadEq;
     HighPrecision rhoChiRadEq;
 };
+
+
+class Simulation
+{
+    private:
+        const ModelParameters& p;
+        std::shared_ptr<PhiParticle> phi;
+        ChiParticle chi;
+        StiffMatter stiff;
+        std::tuple<HighPrecision, HighPrecision, HighPrecision> runStiffPhase();
+        std::tuple<HighPrecision, HighPrecision, HighPrecision> runMatterPhase(HighPrecision t0);
+        std::tuple<HighPrecision, HighPrecision, HighPrecision> runRadiationPhase(HighPrecision t0);
+        std::pair<HighPrecision, HighPrecision> getReheatingTemperatureAndTime(HighPrecision rhoChiRad,
+                                                                               HighPrecision t_eq);
+    public:
+        Simulation(const ModelParameters& p_);
+        SimulationResults run();
+};
+
 
 #endif
