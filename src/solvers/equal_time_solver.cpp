@@ -42,13 +42,13 @@ std::tuple<HighPrecision, HighPrecision, HighPrecision> EqualTimeSolver::getEqua
 }
 
 /**
- * Custom bracketing function. Increases upper limit by times 10^2 until sign change is found (this will
+ * Custom bracketing function. Increases upper limit by times 10^1 until sign change is found (this will
  * happen at some point) and returns the found bracket to be used in Toms method.
  */
 std::tuple<HighPrecision, HighPrecision> findBracket(EnergyDensity h, HighPrecision low)
 {
     HighPrecision fa = h(low);
-    HighPrecision high = low * HighPrecision("1e5");
+    HighPrecision high = low * HighPrecision("1e3");
     HighPrecision fb = h(high);
     const int maxAttempts = 100;
     int attempts = 0;
@@ -91,7 +91,6 @@ std::tuple<HighPrecision, HighPrecision, HighPrecision> EqualTimeSolver::toms748
         //auto high = upperLimit;
         const int digits = std::numeric_limits<HighPrecision>::digits;
         auto [low, high] = findBracket(h, lowerLimit);
-        //std::cout << "  [TOMS748] Using brackets: [a, b]=[" << low << ", " << high << "]" << std::endl;
         HighPrecision fa = h(low);
         HighPrecision fb = h(high);
         result = toms748_solve(h, low, high, fa, fb, eps_tolerance<HighPrecision>(digits), maxIter);

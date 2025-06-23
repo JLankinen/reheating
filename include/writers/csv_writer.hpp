@@ -21,13 +21,14 @@ class CSVWriter : public ResultsWriter
     private:
         std::ofstream fs;
         std::mutex mtx;
+        std::string filename;
         path outputDir = current_path().parent_path() / "results";
-        path outputFile = outputDir / "results.csv";
+        path outputFile = outputDir / filename;
 
         static std::string toCSVRow(const SimulationResults& res);
 
     public:
-        explicit CSVWriter();
+        explicit CSVWriter(std::string file = "results.csv");
         void write(const SimulationResults& res) override;
 };
 

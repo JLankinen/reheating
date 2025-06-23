@@ -5,7 +5,7 @@
 #include <iostream>
 #include <filesystem>
 
-CSVWriter::CSVWriter()
+CSVWriter::CSVWriter(std::string file) : filename{file}
 {
     if(!std::filesystem::exists(outputDir))
     {
@@ -24,11 +24,11 @@ CSVWriter::CSVWriter()
     }
     
     // Write the csv header
-    fs << "t0,m,lambda,b,xi,G_N,"
-            "reheating_temp,reheating_time,"
-            "t_eq,rhoStiff_t_eq,rhoPhiStiff_t_eq,"
-            "tau_eq,rhoPhiMatEq,rhoChiMatEq,"
-            "tau2_eq,rhoPhiRadEq,rhoChiRadEq\n";
+    fs << "t0[GeV^-1],m[GeV],lambda,b,xi,G_N[GeV^-2],"
+            "reheating_temp[GeV],reheating_time[1/GeV],"
+            "t_eq[GeV^4],rhoStiff_t_eq[GeV^4],rhoPhiStiff_t_eq[GeV^4],"
+            "tau_eq[GeV^-1],rhoPhiMatEq[GeV^4],rhoChiMatEq[GeV^4],"
+            "tau2_eq[GeV^-1],rhoPhiRadEq[GeV^4],rhoChiRadEq[GeV^4]\n";
 };
 
 void CSVWriter::write(const SimulationResults& res)

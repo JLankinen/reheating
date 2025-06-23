@@ -8,6 +8,7 @@
 #include "simulation/simulation_manager.hpp"
 #include "writers/csv_writer.hpp"
 
+
 int main()
 {
     /**TODO
@@ -16,17 +17,24 @@ int main()
      * 2. Add logging
      * 3. Generate parameter space.
      */
+    std::vector<ModelParameters> params;
+    ModelParameters p;
+
+    std::vector<HighPrecision> bValues{HighPrecision(1.0)};
+    std::vector<HighPrecision> mValues{HighPrecision("1e2")};
+
+    for (const auto& b : bValues)
+    {
+        p.b = b;
+     for (const auto& m : mValues)
+     {
+        p.m = m;
+        params.push_back(p);
+     }   
+    }
 
     auto start = std::chrono::high_resolution_clock::now();
-
-    ModelParameters p;
-    p.logParameters();
-
-    std::vector<ModelParameters> params;
-
-    params.push_back(p);
-
-    auto outputWriter = std::make_unique<CSVWriter>();
+    auto outputWriter = std::make_unique<CSVWriter>("results.csv");
 
     SimulationManager manager(std::move(params), std::move(outputWriter));
     manager.run();

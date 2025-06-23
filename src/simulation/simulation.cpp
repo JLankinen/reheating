@@ -19,6 +19,7 @@ Simulation::Simulation(const ModelParameters& p_) :
 
 SimulationResults Simulation::run()
 {
+    p.logParameters();
     auto [t_eq, rhoStiffEq, rhoPhiEq] = runStiffPhase();
     auto [tau_eq, rhoPhiMatEq, rhoChiMatEq] = runMatterPhase(t_eq);
     auto [t_eq_rad, rhoPhiRadEq, rhoChiRadEq] = runRadiationPhase(tau_eq);
