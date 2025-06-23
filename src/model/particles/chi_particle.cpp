@@ -89,4 +89,3 @@ EnergyDensity ChiParticle::energyDensityRadiation(HighPrecision t0)
         return prefactor * integral + initialRho;
     };
 }
-

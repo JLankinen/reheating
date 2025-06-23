@@ -26,6 +26,7 @@ struct SimulationResults
     HighPrecision tau2_eq;
     HighPrecision rhoPhiRadEq;
     HighPrecision rhoChiRadEq;
+    bool toMatter;
 };
 
 
@@ -36,6 +37,7 @@ class Simulation
         std::shared_ptr<PhiParticle> phi;
         ChiParticle chi;
         StiffMatter stiff;
+        bool toMatter(HighPrecision rhoPhi, HighPrecision timeEquality);
         std::tuple<HighPrecision, HighPrecision, HighPrecision> runStiffPhase();
         std::tuple<HighPrecision, HighPrecision, HighPrecision> runMatterPhase(HighPrecision t0);
         std::tuple<HighPrecision, HighPrecision, HighPrecision> runRadiationPhase(HighPrecision t0);

@@ -15,30 +15,81 @@ Simulation::Simulation(const ModelParameters& p_) :
     chi{ChiParticle(p_, phi)},
     stiff{StiffMatter(p_)}
     {};
-  
+
+/**
+ * @brief Check if the energy density of massive particles is greater than massless particles
+ * at the time of equality. If it is, Universe ends up in matter domination. Otherwise it ends
+ * up in radiation domination.
+ */
+bool Simulation::toMatter(HighPrecision rhoPhi, HighPrecision timeEquality)
+{
+    EnergyDensity rhoChiStiff = chi.energyDensityStiff();
+    return rhoPhi > rhoChiStiff(timeEquality);
+}
+
 
 SimulationResults Simulation::run()
 {
     p.logParameters();
     auto [t_eq, rhoStiffEq, rhoPhiEq] = runStiffPhase();
-    auto [tau_eq, rhoPhiMatEq, rhoChiMatEq] = runMatterPhase(t_eq);
-    auto [t_eq_rad, rhoPhiRadEq, rhoChiRadEq] = runRadiationPhase(tau_eq);
-    auto [tempRH, timeRH] = getReheatingTemperatureAndTime(tau_eq, t_eq_rad);
 
-    return SimulationResults{
+    if (toMatter(rhoPhiEq, t_eq))
+    {
+        // Set the initial values
+        EnergyDensity rhoChiStiff = chi.energyDensityStiff();
+        HighPrecision rhoChiEq = rhoChiStiff(t_eq);
+        phi->setInitialRhoMatter(rhoPhiEq);
+        chi.setInitialRhoMatter(rhoChiEq);
+        
+        auto [tau_eq, rhoPhiMatEq, rhoChiMatEq] = runMatterPhase(t_eq);
+        phi->setInitialRhoRadiation(rhoPhiMatEq);
+        chi.setInitialRhoRadiation(rhoChiMatEq);
+        
+        auto [t_eq_rad, rhoPhiRadEq, rhoChiRadEq] = runRadiationPhase(tau_eq);
+        auto [tempRH, timeRH] = getReheatingTemperatureAndTime(tau_eq, t_eq_rad);
+    
+        return SimulationResults{
+            .params = p,
+            .reheating_temp = tempRH,
+            .reheating_time = timeRH,
+            .t_eq = t_eq,
+            .rhoStiff_t_eq = rhoStiffEq,
+            .rhoPhiStiff_t_eq = rhoPhiEq,
+            .tau_eq = tau_eq,
+            .rhoPhiMatEq = rhoPhiMatEq,
+            .rhoChiMatEq = rhoChiMatEq,
+            .tau2_eq = t_eq_rad,
+            .rhoPhiRadEq = rhoPhiRadEq,
+            .rhoChiRadEq = rhoChiRadEq,
+            .toMatter = true              
+            };
+    }
+    else
+    {
+        EnergyDensity rhoChiStiff = chi.energyDensityStiff();
+        HighPrecision rhoChiEq = rhoChiStiff(t_eq);
+        phi->setInitialRhoRadiation(rhoPhiEq);
+        chi.setInitialRhoRadiation(rhoChiEq);
+        auto [t_eq_rad, rhoPhiRadEq, rhoChiRadEq] = runRadiationPhase(t_eq);
+        auto [tempRH, timeRH] = getReheatingTemperatureAndTime(t_eq, t_eq_rad);
+
+        return SimulationResults{
         .params = p,
         .reheating_temp = tempRH,
         .reheating_time = timeRH,
         .t_eq = t_eq,
         .rhoStiff_t_eq = rhoStiffEq,
         .rhoPhiStiff_t_eq = rhoPhiEq,
-        .tau_eq = tau_eq,
-        .rhoPhiMatEq = rhoPhiMatEq,
-        .rhoChiMatEq = rhoChiMatEq,
+        .tau_eq = 0,
+        .rhoPhiMatEq = 0,
+        .rhoChiMatEq = 0,
         .tau2_eq = t_eq_rad,
         .rhoPhiRadEq = rhoPhiRadEq,
-        .rhoChiRadEq = rhoChiRadEq  
-    };
+        .rhoChiRadEq = rhoChiRadEq,
+        .toMatter = false
+        };
+    }
+
 }
 
 
@@ -47,19 +98,10 @@ std::tuple<HighPrecision, HighPrecision, HighPrecision> Simulation::runStiffPhas
         /* Find equal time starting from the stiff matter phase. */
         EnergyDensity rhoPhiStiff = phi->energyDensityStiff();
         EnergyDensity rhoStiff = stiff.energyDensity();
-        EnergyDensity rhoChiStiff = chi.energyDensityStiff();
     
-        auto stiffSolver = EqualTimeSolver(rhoStiff, rhoPhiStiff, p.t0).withRestriction(rhoChiStiff);
+        auto stiffSolver = EqualTimeSolver(rhoStiff, rhoPhiStiff, p.t0);
         auto [t_eq, rhoStiffEq, rhoPhiEq] = stiffSolver.getEqualTime();
-    
-        std::cout << "t_eq: " << t_eq << " RhoPhi at t_eq: " << rhoPhiEq << " RhoStiff at t_eq: " << rhoStiffEq << std::endl;
 
-        // Set the initial values
-        HighPrecision rhoChiEq = rhoChiStiff(t_eq);
-        phi->setInitialRhoMatter(rhoPhiEq);
-        chi.setInitialRhoMatter(rhoChiEq);
-        std::cout << "Initial RhoChi end of stiff: " << rhoChiEq << std::endl;
-        std::cout << "Initial RhoPhi end of stiff: " << rhoPhiEq << std::endl;
         return std::make_tuple(t_eq, rhoStiffEq, rhoPhiEq);
 }
 
@@ -71,14 +113,6 @@ std::tuple<HighPrecision, HighPrecision, HighPrecision> Simulation::runMatterPha
 
     auto [tau_eq, rhoPhiMatEq, rhoChiMatEq] = radMatSolver.getEqualTime();
 
-    std::cout << "tau_eq: " << tau_eq << " RhoPhi at tau_eq: " << rhoPhiMatEq << " RhoChi at tau_eq: " << rhoChiMatEq << std::endl;
-
-    /* Use tau_eq as initial time for the calculations in the radiation dominated phase.*/
-    phi->setInitialRhoRadiation(rhoPhiMatEq);
-    chi.setInitialRhoRadiation(rhoChiMatEq);
-    std::cout << "Initial RhoChi end of matter: " << rhoPhiMatEq << std::endl;
-    std::cout << "Initial RhoPhi end of matter: " << rhoChiMatEq << std::endl;
-
     return std::make_tuple(tau_eq, rhoPhiMatEq, rhoChiMatEq);
 }
 
@@ -89,8 +123,6 @@ std::tuple<HighPrecision, HighPrecision, HighPrecision> Simulation::runRadiation
     auto radSolver = EqualTimeSolver(rhoPhiRad, rhoChiRad, t0);
     auto [t_eq_rad, rhoPhiRadEq, rhoChiRadEq] = radSolver.getEqualTime();
 
-    std::cout << "t_eq rad: " << t_eq_rad << " RhoPhi at t_eq: " << rhoPhiRadEq << " RhoChi at t_eq: " << rhoChiRadEq << std::endl;
-
     return std::make_tuple(t_eq_rad, rhoPhiRadEq, rhoChiRadEq);
 }
 
@@ -99,7 +131,6 @@ std::pair<HighPrecision, HighPrecision> Simulation::getReheatingTemperatureAndTi
     EnergyDensity rhoChiRad = this->chi.energyDensityRadiation(tau_eq);
     auto t_rh = maximize(rhoChiRad, tau2_eq, tau2_eq * HighPrecision("1e5"));
     HighPrecision reheatingTemperature = IntegrationUtils::integrate(this->chi.energyDensityRadiation(tau2_eq), tau2_eq, t_rh);
-    std::cout << "Reheating time: " << t_rh << ", Reheating temperature: " << pow(reheatingTemperature, HighPrecision(1.0 / 4.0)) << std::endl;
-
-    return std::pair(reheatingTemperature, t_rh);
+    HighPrecision T_RH = pow(reheatingTemperature, HighPrecision(1.0/4.0));
+    return std::pair(T_RH, t_rh);
 }

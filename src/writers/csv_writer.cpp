@@ -28,7 +28,7 @@ CSVWriter::CSVWriter(std::string file) : filename{file}
             "reheating_temp[GeV],reheating_time[1/GeV],"
             "t_eq[GeV^4],rhoStiff_t_eq[GeV^4],rhoPhiStiff_t_eq[GeV^4],"
             "tau_eq[GeV^-1],rhoPhiMatEq[GeV^4],rhoChiMatEq[GeV^4],"
-            "tau2_eq[GeV^-1],rhoPhiRadEq[GeV^4],rhoChiRadEq[GeV^4]\n";
+            "tau2_eq[GeV^-1],rhoPhiRadEq[GeV^4],rhoChiRadEq[GeV^4], toMatter\n";
 };
 
 void CSVWriter::write(const SimulationResults& res)
@@ -45,6 +45,6 @@ std::string CSVWriter::toCSVRow(const SimulationResults& r)
     << r.reheating_temp << ',' << r.reheating_time << ','
     << r.t_eq           << ',' << r.rhoStiff_t_eq    << ',' << r.rhoPhiStiff_t_eq << ','
     << r.tau_eq         << ',' << r.rhoPhiMatEq      << ',' << r.rhoChiMatEq      << ','
-    << r.tau2_eq        << ',' << r.rhoPhiRadEq      << ',' << r.rhoChiRadEq;
+    << r.tau2_eq        << ',' << r.rhoPhiRadEq      << ',' << r.rhoChiRadEq << ',' << r.toMatter;
     return ss.str();
 }

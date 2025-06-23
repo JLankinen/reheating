@@ -33,7 +33,6 @@ class EqualTimeSolver
         EnergyDensity restriction;
         HighPrecision lowerLimit;
         HighPrecision upperLimit = HighPrecision("1e-15");
-        bool hasRestriction = false;
         std::uintmax_t maxIter = 20;
         Method method = Method::Toms748;
         std::tuple<HighPrecision, HighPrecision, HighPrecision> toms748Method();
@@ -41,8 +40,6 @@ class EqualTimeSolver
     public:
         EqualTimeSolver(EnergyDensity _rho1, EnergyDensity _rho2, HighPrecision _lowerLimit):
         rho1{_rho1}, rho2{_rho2}, lowerLimit{_lowerLimit} {};
-
-        EqualTimeSolver& withRestriction(EnergyDensity rho3);
         EqualTimeSolver& usingMethod(Method meth);
         void setUpperLimit(HighPrecision ul);
        
