@@ -102,7 +102,7 @@ EnergyDensity PhiParticle::energyDensityRadiation(HighPrecision t0)
     constexpr double n = 2.0;
     ChiDecayRate chiDecay(this->p, n, t0);
     return [this, t0, chiDecay](HighPrecision t)->HighPrecision{
-        // n = 2 in matter dominated Universe
+        // n = 2 in radiation dominated Universe
         return pow((t0 / t), HighPrecision(3.0 / 2.0)) * exp(-chiDecay(t)) * this->getInitialRhoRadiation();
     };    
 }

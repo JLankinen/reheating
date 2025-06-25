@@ -30,7 +30,6 @@ bool Simulation::toMatter(HighPrecision rhoPhi, HighPrecision timeEquality)
 
 SimulationResults Simulation::run()
 {
-    p.logParameters();
     auto [t_eq, rhoStiffEq, rhoPhiEq] = runStiffPhase();
 
     if (toMatter(rhoPhiEq, t_eq))
@@ -95,7 +94,6 @@ SimulationResults Simulation::run()
 
 std::tuple<HighPrecision, HighPrecision, HighPrecision> Simulation::runStiffPhase()
 {
-        /* Find equal time starting from the stiff matter phase. */
         EnergyDensity rhoPhiStiff = phi->energyDensityStiff();
         EnergyDensity rhoStiff = stiff.energyDensity();
     
@@ -131,6 +129,6 @@ std::pair<HighPrecision, HighPrecision> Simulation::getReheatingTemperatureAndTi
     EnergyDensity rhoChiRad = this->chi.energyDensityRadiation(tau_eq);
     auto t_rh = maximize(rhoChiRad, tau2_eq, tau2_eq * HighPrecision("1e5"));
     HighPrecision reheatingTemperature = IntegrationUtils::integrate(this->chi.energyDensityRadiation(tau2_eq), tau2_eq, t_rh);
-    HighPrecision T_RH = pow(reheatingTemperature, HighPrecision(1.0/4.0));
+    HighPrecision T_RH = pow(reheatingTemperature, HighPrecision(1.0 / 4.0));
     return std::pair(T_RH, t_rh);
 }

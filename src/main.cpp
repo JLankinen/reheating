@@ -1,43 +1,77 @@
 #include <iostream>
 #include <vector>
 #include <memory>
+#include <chrono>
 
 #include "parameters/parameters.hpp"
 #include "simulation/simulation_manager.hpp"
 #include "writers/csv_writer.hpp"
 
+using namespace std::chrono;
 
 int main()
 {
     /**TODO
+     * 1. Add failed parameters file.
      * 2. Add logging
-     * 3. Generate parameter space.
      */
     std::vector<ModelParameters> params;
     ModelParameters p;
 
-    std::vector<HighPrecision> bValues{HighPrecision(1.0)};
+    std::vector<HighPrecision> lambdaValues{HighPrecision(0.001), HighPrecision(0.01)};
+    std::vector<HighPrecision> bValues{HighPrecision(0.1), HighPrecision(0.5),
+                                       HighPrecision(1.0), HighPrecision(5),
+                                       HighPrecision(10), HighPrecision(100)};
     std::vector<HighPrecision> xiValues{HighPrecision(1.0 / 6.0), HighPrecision(0.0)};
-    std::vector<HighPrecision> mValues{HighPrecision("1e2"),
-                                       HighPrecision("1e5")};
+    std::vector<HighPrecision> mValues{};
 
-    for (const auto& xi : xiValues)
+    // Generate mass points.
+    HighPrecision mStart = HighPrecision("1e2");
+    HighPrecision mEnd = HighPrecision("1e25");
+    HighPrecision mStep = HighPrecision("1e1");
+    for(HighPrecision m = mStart; m <= mEnd; m *= mStep)
     {
-        for (const auto& b : bValues)
+        HighPrecision next = m * mStep;
+        mValues.push_back(m);
+        mValues.push_back((m + next) / 4); 
+        mValues.push_back((m + next) / 2);  
+        mValues.push_back(3 * (m + next) / 4);   
+    }
+
+    for (const auto& lambda : lambdaValues)
+    {
+        for (const auto& xi : xiValues)
         {
-            for (const auto& m : mValues)
+            for (const auto& b : bValues)
             {
-                p.b = b;
-                p.xi = xi;
-                p.m = m;
-                params.push_back(p);
-            }   
+                for (const auto& m : mValues)
+                {
+                    p.lambda = lambda;
+                    p.b = b;
+                    p.xi = xi;
+                    p.m = m;
+                    params.push_back(p);
+                }   
+            }
         }
     }
 
     auto outputWriter = std::make_unique<CSVWriter>("results.csv");
 
+    std::cout << "Beginning simulation with " << params.size() << " parameter combinations.";
+    auto start = steady_clock::now();
+
     SimulationManager manager(std::move(params), std::move(outputWriter));
-    manager.run();
+    manager.run(); 
+    
+    auto end = steady_clock::now();
+
+    auto elapsed = duration_cast<seconds>(end - start);
+    auto formatted = hh_mm_ss{elapsed};
+
+    std::cout << "Elapsed time: "
+              << formatted.hours().count() << "h "
+              << formatted.minutes().count() << "m "
+              << formatted.seconds().count() << "s\n";
     
 }

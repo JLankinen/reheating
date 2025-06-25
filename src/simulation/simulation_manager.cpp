@@ -56,8 +56,23 @@ void SimulationManager::workerLoop()
 
         }
 
-        Simulation sim(p);
-        SimulationResults res = sim.run(); // Results of one individual run.
-        writer->write(res); // Append the result file.
+        try
+        {
+            Simulation sim(std::move(p));
+            SimulationResults res = sim.run(); // Results of one individual run.
+            writer->write(res); // Append the result file.
+        }
+        catch (const boost::wrapexcept<std::domain_error>& ex)
+        {
+            std::cerr << "Domain error in simulation: " << ex.what() << "\n";
+        }
+        catch (const std::exception& ex)
+        {
+            std::cerr << "Standard exception: " << ex.what() << "\n";
+        }
+        catch (...)
+        {
+            std::cerr << "Unknown error occurred during simulation.\n";
+        }
     }
 }
