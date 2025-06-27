@@ -10,31 +10,6 @@ using boost::math::tools::bisect;
 using boost::math::tools::eps_tolerance;
 
 
-EqualTimeSolver& EqualTimeSolver::usingMethod(Method meth)
-{
-    method = meth;
-    return *this;
-}
-
-void EqualTimeSolver::setUpperLimit(HighPrecision ul)
-{
-    this->upperLimit = ul;
-}
-
-
-std::tuple<HighPrecision, HighPrecision, HighPrecision> EqualTimeSolver::getEqualTime()
-{
-    switch (method)
-    {
-    case Method::Toms748:
-        return toms748Method();
-    case Method::Bisect:
-        return bisectMethod();
-    default:
-        throw std::runtime_error("No root finding method selected.");
-    }
-}
-
 /**
  * Custom bracketing function. Increases upper limit by times 10^1 until sign change is found (this will
  * happen at some point) and returns the found bracket to be used in Toms method.
@@ -68,14 +43,14 @@ std::tuple<HighPrecision, HighPrecision> findBracket(EnergyDensity h, HighPrecis
     return std::make_tuple(low, high);
 }
 
-std::tuple<HighPrecision, HighPrecision, HighPrecision> EqualTimeSolver::toms748Method()
+std::tuple<HighPrecision, HighPrecision, HighPrecision> EqualTimeSolver::getEqualTime()
 {
         // Function difference
         auto h = [&](HighPrecision t) -> HighPrecision {
             HighPrecision val1 = rho1(t);
             HighPrecision val2 = rho2(t);
             HighPrecision result = val1 - val2;
-            std::cout << "  [TOMS748] Evaluating h(t): t = " << t << ", rho1(t) = " << val1 << ", rho2(t)= " << val2 <<", h(t)= " << result << "\n";
+            //std::cout << "  [TOMS748] Evaluating h(t): t = " << t << ", rho1(t) = " << val1 << ", rho2(t)= " << val2 <<", h(t)= " << result << "\n";
             return result;
         };
 
@@ -94,27 +69,4 @@ std::tuple<HighPrecision, HighPrecision, HighPrecision> EqualTimeSolver::toms748
         HighPrecision rho2Equal = rho2(timeEquality);
 
         return std::make_tuple(timeEquality, rho1Equal, rho2Equal);
-}
-
-
-std::tuple<HighPrecision, HighPrecision, HighPrecision> EqualTimeSolver::bisectMethod()
-{
-    // Function difference
-    auto h = [&](HighPrecision t) -> HighPrecision {
-        HighPrecision val1 = rho1(t);
-        HighPrecision val2 = rho2(t);
-        HighPrecision result = val1 - val2;
-        std::cout << "  [Bisect] Evaluating h(t): t = " << t << ", rho1(t) = " << val1 << ", rho2(t)= " << val2 <<", h(t)= " << result << "\n";
-        return result;
-    };
-
-    const int digits = std::numeric_limits<HighPrecision>::digits;
-    std::uintmax_t maxIter = 100;
-    auto result = bisect(h, lowerLimit, upperLimit, eps_tolerance<HighPrecision>(digits), maxIter);
-    HighPrecision eqTime = (result.first + result.second) / 2;
-
-    HighPrecision rho1Equal = rho1(eqTime);
-    HighPrecision rho2Equal = rho2(eqTime);
-
-    return std::make_tuple(eqTime, rho1Equal, rho2Equal);
 }

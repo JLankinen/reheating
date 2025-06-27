@@ -19,24 +19,25 @@ int main()
     ModelParameters p;
 
     std::vector<HighPrecision> lambdaValues{HighPrecision(0.001), HighPrecision(0.01)};
-    std::vector<HighPrecision> bValues{HighPrecision(0.1), HighPrecision(0.5),
-                                       HighPrecision(1.0), HighPrecision(5),
-                                       HighPrecision(10), HighPrecision(100)};
+    std::vector<HighPrecision> bValues{HighPrecision(0.01), HighPrecision(0.1),
+                                       HighPrecision(1.0), HighPrecision(10),
+                                       HighPrecision(100)};
     std::vector<HighPrecision> xiValues{HighPrecision(1.0 / 6.0), HighPrecision(0.0)};
     std::vector<HighPrecision> mValues{};
 
     // Generate mass points.
-    HighPrecision mStart = HighPrecision("1e2");
-    HighPrecision mEnd = HighPrecision("1e25");
-    HighPrecision mStep = HighPrecision("1e1");
-    for(HighPrecision m = mStart; m <= mEnd; m *= mStep)
+    auto generateMassPoints = [&](HighPrecision start, HighPrecision end, int samples)
     {
-        HighPrecision next = m * mStep;
-        mValues.push_back(m);
-        mValues.push_back((m + next) / 4); 
-        mValues.push_back((m + next) / 2);  
-        mValues.push_back(3 * (m + next) / 4);   
-    }
+        HighPrecision step = pow(HighPrecision(10), HighPrecision(1.0) / samples);
+        for (HighPrecision m = start; m < end; m*=step)
+        {
+            mValues.push_back(m);
+        }
+    };
+    // Generate more points in the low mass range where things are interesting.
+    generateMassPoints(HighPrecision("1e1"), HighPrecision("1e8"), 100);
+    generateMassPoints(HighPrecision("1e8"), HighPrecision("1e25"), 40);
+
 
     for (const auto& lambda : lambdaValues)
     {
@@ -56,13 +57,13 @@ int main()
         }
     }
 
-    auto outputWriter = std::make_unique<CSVWriter>("results.csv");
+    auto outputWriter = std::make_unique<CSVWriter>("results_dense.csv");
 
     std::cout << "Beginning simulation with " << params.size() << " parameter combinations.";
     auto start = steady_clock::now();
 
     SimulationManager manager(std::move(params), std::move(outputWriter));
-    manager.run(); 
+    //manager.run(); 
     
     auto end = steady_clock::now();
 

@@ -30,18 +30,11 @@ class EqualTimeSolver
     private:
         EnergyDensity rho1;
         EnergyDensity rho2;
-        EnergyDensity restriction;
         HighPrecision lowerLimit;
-        HighPrecision upperLimit = HighPrecision("1e-15");
         std::uintmax_t maxIter = 20;
-        Method method = Method::Toms748;
-        std::tuple<HighPrecision, HighPrecision, HighPrecision> toms748Method();
-        std::tuple<HighPrecision, HighPrecision, HighPrecision> bisectMethod();
     public:
         EqualTimeSolver(EnergyDensity _rho1, EnergyDensity _rho2, HighPrecision _lowerLimit):
         rho1{_rho1}, rho2{_rho2}, lowerLimit{_lowerLimit} {};
-        EqualTimeSolver& usingMethod(Method meth);
-        void setUpperLimit(HighPrecision ul);
        
         /**
          * @brief Get the time t_eq when rho1 and rho2 are equal i.e., rho1(t)=rho2(t).

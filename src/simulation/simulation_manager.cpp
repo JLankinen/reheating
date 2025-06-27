@@ -37,7 +37,8 @@ void SimulationManager::workerLoop()
 
         {
             std::unique_lock<std::mutex> lock(queueMtx);
-            cv.wait(lock, [&] {return stop || !tasks.empty();}); // Run until simulations ar empty.
+            // Continue if predicate true. Run until simulations are empty or stop condition is met.
+            cv.wait(lock, [&] {return stop || !tasks.empty();});
 
             if (tasks.empty())
             {
@@ -48,6 +49,7 @@ void SimulationManager::workerLoop()
             p = std::move(tasks.front());
             tasks.pop_front();
 
+            // If last task
             if (tasks.empty())
             {
                 stop = true;  // Only last thread sets stop.
