@@ -30,6 +30,10 @@ class SimulationManager
         std::atomic<bool> stop{false};
         // Writer
         std::unique_ptr<ResultsWriter> writer;
+        // Counter
+        std::atomic<int> simulationCounter{0};
+        int totalSimulationCount = 0;
+
         void workerLoop();
 
     public:

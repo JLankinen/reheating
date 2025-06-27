@@ -1,3 +1,25 @@
+/*
+ * =====================================================================================
+ * Project: Reheating via gravitational particle production in the kination epoch
+ * Author: J. M. Lankinen
+ *
+ * Description:
+ * This project simulates the decay and evolution of a massive scalar field φ and a 
+ * massless conformally coupled scalar field χ in the early universe under various
+ * cosmological epochs: stiff matter, matter, and radiation domination. 
+ * It calculates energy densities, equal times, and reheating properties in these epochs.
+ * 
+ * Purpose:
+ * To explore how different parameter choices affect reheating dynamics when inflation ends
+ * in kination phase and particles are created gravitationally. Useful for studies
+ * in theoretical physics and early universe cosmology.
+ *
+ * Entry Point:
+ * This file (`main.cpp`) initializes the parameter grid, launches the simulation
+ * manager, and coordinates multi-threaded simulation runs.
+ * =====================================================================================
+ */
+
 #include <iostream>
 #include <vector>
 #include <memory>
@@ -11,10 +33,6 @@ using namespace std::chrono;
 
 int main()
 {
-    /**TODO
-     * 1. Add failed parameters file.
-     * 2. Add logging
-     */
     std::vector<ModelParameters> params;
     ModelParameters p;
 
@@ -35,8 +53,8 @@ int main()
         }
     };
     // Generate more points in the low mass range where things are interesting.
-    generateMassPoints(HighPrecision("1e1"), HighPrecision("1e8"), 100);
-    generateMassPoints(HighPrecision("1e8"), HighPrecision("1e25"), 40);
+    generateMassPoints(HighPrecision("1e1"), HighPrecision("1e7"), 100);
+    generateMassPoints(HighPrecision("1e7"), HighPrecision("1e25"), 40);
 
 
     for (const auto& lambda : lambdaValues)
@@ -63,7 +81,7 @@ int main()
     auto start = steady_clock::now();
 
     SimulationManager manager(std::move(params), std::move(outputWriter));
-    //manager.run(); 
+    manager.run(); 
     
     auto end = steady_clock::now();
 

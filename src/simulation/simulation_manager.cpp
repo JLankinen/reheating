@@ -5,7 +5,8 @@ SimulationManager::SimulationManager(std::vector<ModelParameters> params,
                                       std::size_t workerCount)
     : tasks(std::make_move_iterator(params.begin()),
             std::make_move_iterator(params.end())),
-      writer(std::move(writer_))
+      writer{std::move(writer_)},
+      totalSimulationCount{static_cast<int>(params.size())}
     {
         if (workerCount == 0)
         {
@@ -63,6 +64,9 @@ void SimulationManager::workerLoop()
             Simulation sim(std::move(p));
             SimulationResults res = sim.run(); // Results of one individual run.
             writer->write(res); // Append the result file.
+
+            int currentSim = ++simulationCounter;
+            std::cout << "Simulation: " << currentSim << "/" << totalSimulationCount << std::endl;
         }
         catch (const boost::wrapexcept<std::domain_error>& ex)
         {
