@@ -66,18 +66,25 @@ void SimulationManager::workerLoop()
             writer->write(res); // Append the result file.
 
             int currentSim = ++simulationCounter;
-            std::cout << "Simulation: " << currentSim << "/" << totalSimulationCount << std::endl;
+            {
+                static std::mutex outputMtx;
+                std::lock_guard<std::mutex> lock(outputMtx);
+                std::cout << "Simulation: " << currentSim << "/" << totalSimulationCount << std::endl;
+            }
         }
         catch (const boost::wrapexcept<std::domain_error>& ex)
         {
+            int currentSim = ++simulationCounter;
             std::cerr << "Domain error in simulation: " << ex.what() << "\n";
         }
         catch (const std::exception& ex)
         {
+            int currentSim = ++simulationCounter;
             std::cerr << "Standard exception: " << ex.what() << "\n";
         }
         catch (...)
         {
+            int currentSim = ++simulationCounter;
             std::cerr << "Unknown error occurred during simulation.\n";
         }
     }

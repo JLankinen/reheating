@@ -51,7 +51,7 @@ ChiDecayRate::ChiDecayRate(ModelParameters& p_, HighPrecision n_, HighPrecision 
             initialBessel = factor2 * bessel2;        
         };
 
-        // Use as function.
+// Use as function.
 HighPrecision ChiDecayRate::operator()(HighPrecision t) const
         {
             HighPrecision arg = HighPrecision(p.m * t);
