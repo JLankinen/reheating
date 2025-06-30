@@ -74,17 +74,17 @@ void SimulationManager::workerLoop()
         }
         catch (const boost::wrapexcept<std::domain_error>& ex)
         {
-            int currentSim = ++simulationCounter;
+            ++simulationCounter;
             std::cerr << "Domain error in simulation: " << ex.what() << "\n";
         }
         catch (const std::exception& ex)
         {
-            int currentSim = ++simulationCounter;
+            ++simulationCounter;
             std::cerr << "Standard exception: " << ex.what() << "\n";
         }
         catch (...)
         {
-            int currentSim = ++simulationCounter;
+            ++simulationCounter;
             std::cerr << "Unknown error occurred during simulation.\n";
         }
     }
