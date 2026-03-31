@@ -13,7 +13,6 @@ using boost::math::airy_ai;
 using boost::math::airy_bi;
 using boost::math::cyl_bessel_j;
 using boost::math::cyl_neumann;
-using HighPrecision = boost::multiprecision::cpp_dec_float_100;
 
 HighPrecision PhiCreationRate(ModelParameters& p, HighPrecision t)
 {

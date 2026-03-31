@@ -1,7 +1,6 @@
 #ifndef CREATION_DECAY_H_
 #define CREATION_DECAY_H_
 
-#include <boost/multiprecision/cpp_dec_float.hpp>
 #include "parameters/parameters.hpp"
 
 /**

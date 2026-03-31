@@ -4,14 +4,13 @@
 #include <cmath>
 #include <string>
 #include <iostream>
-#include <boost/multiprecision/cpp_dec_float.hpp>
-using HighPrecision = boost::multiprecision::cpp_dec_float_100;
+#include <utils/types.hpp>
 
 struct ModelParameters
 {
     HighPrecision t0 = HighPrecision("1.51926764e-8"); // Initial time in GeV^-1
     HighPrecision m;                                   // Mass of the particle in GeV
-    HighPrecision lambda;                              // Dimensionless coupling constant << 1.
+    HighPrecision lambda;                              // Coupling constant << 1.
     HighPrecision b;                                   // Dimensionless expansion parameter.
     HighPrecision xi;                                  // Gravitational coupling.
     HighPrecision G_N = HighPrecision("1.683e-37");    // Gravitational constant in GeV^-2

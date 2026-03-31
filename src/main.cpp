@@ -38,17 +38,22 @@ TODO:
     2. Add support for multiple channels.
 */
 
+
 int main()
 {
     std::vector<ModelParameters> params;
     ModelParameters p;
 
-    std::vector<HighPrecision> lambdaValues{HighPrecision(0.001), HighPrecision(0.01)};
-    std::vector<HighPrecision> bValues{HighPrecision(0.01), HighPrecision(0.1),
-                                       HighPrecision(1.0), HighPrecision(10),
-                                       HighPrecision(100)};
-    std::vector<HighPrecision> xiValues{HighPrecision(1.0 / 6.0), HighPrecision(0.0)};
-    std::vector<HighPrecision> mValues{};
+    std::vector<HighPrecision> lambdaValues{HighPrecision("0.1"),
+                                            HighPrecision("0.01"),
+                                            HighPrecision("0.001"),
+                                            HighPrecision("0.0001")
+                                            };
+    std::vector<HighPrecision> bValues{HighPrecision("10"), HighPrecision("1.0"), HighPrecision("0.1")};
+    std::vector<HighPrecision> xiValues{HighPrecision(0.0)};
+    std::vector<HighPrecision> mValues{};  // mass 10 all with no errors.
+
+
 
     // Generate mass points.
     auto generateMassPoints = [&](HighPrecision start, HighPrecision end, int samples)
@@ -60,8 +65,9 @@ int main()
         }
     };
     // Generate more points in the low mass range where things are interesting.
-    generateMassPoints(HighPrecision("1e2"), HighPrecision("1e7"), 100);
-    generateMassPoints(HighPrecision("1e7"), HighPrecision("1e25"), 50);
+
+    generateMassPoints(HighPrecision("1"), HighPrecision("1e9"), 25);
+    generateMassPoints(HighPrecision("1e9"), HighPrecision("1e28"), 17);
 
 
     for (const auto& lambda : lambdaValues)
@@ -83,7 +89,7 @@ int main()
     }
 
     // Insert filename you want to save results in the parentheses below.
-    auto outputWriter = std::make_unique<CSVWriter>("results_dense.csv");
+    auto outputWriter = std::make_unique<CSVWriter>("results.csv");
 
     auto start = steady_clock::now();
     std::cout << "Beginning simulation with " << params.size() << " parameter combinations." << std::endl;

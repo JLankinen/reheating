@@ -7,7 +7,7 @@
 #include <boost/multiprecision/cpp_dec_float.hpp>
 #include "parameters/parameters.hpp"
 
+using HighPrecision = boost::multiprecision::cpp_dec_float_50;
 using EnergyDensity = std::function<HighPrecision(HighPrecision t)>;
-using HighPrecision = boost::multiprecision::cpp_dec_float_100;
 
 #endif

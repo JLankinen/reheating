@@ -75,7 +75,7 @@ EnergyDensity ChiParticle::energyDensityRadiation(HighPrecision t0)
 
     return [this, t0, chiDecay](HighPrecision t)->HighPrecision{
         HighPrecision time = pow(t0, (1.0 / 2.0)) / pow(t, (1.0 / 2.0));
-        HighPrecision initialRho = this->getInitialRhoMatter() * pow(time, 4);  // Rho_chi_mat(tau_eq)
+        HighPrecision initialRho = this->getInitialRhoRadiation() * pow(time, 4);  // Rho_chi_mat(tau_eq)
         HighPrecision prefactor = 1 / pow(t, 2);
         EnergyDensity rhoRad = phiParticle->energyDensityRadiation(t0);
 

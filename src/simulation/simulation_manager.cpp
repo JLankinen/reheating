@@ -75,7 +75,7 @@ void SimulationManager::workerLoop()
         catch (const boost::wrapexcept<std::domain_error>& ex)
         {
             ++simulationCounter;
-            std::cerr << "Domain error in simulation: " << ex.what() << "\n";
+            std::cerr << "Domain error in simulation: " << ex.what() << "\n" << "(m, lambda, b) = " << p.m << ", " << p.lambda << ", " << p.b;
         }
         catch (const std::exception& ex)
         {

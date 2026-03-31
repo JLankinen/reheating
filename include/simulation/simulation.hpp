@@ -20,13 +20,12 @@ struct SimulationResults
     HighPrecision t_eq;
     HighPrecision rhoStiff_t_eq;
     HighPrecision rhoPhiStiff_t_eq;
+    HighPrecision rhoChi_t_eq;
     HighPrecision tau_eq;
     HighPrecision rhoPhiMatEq;
     HighPrecision rhoChiMatEq;
-    HighPrecision tau2_eq;
-    HighPrecision rhoPhiRadEq;
-    HighPrecision rhoChiRadEq;
     bool toMatter;
+    bool bothFound;
 };
 
 
@@ -37,12 +36,12 @@ class Simulation
         std::shared_ptr<PhiParticle> phi;
         ChiParticle chi;
         StiffMatter stiff;
-        bool toMatter(HighPrecision rhoPhi, HighPrecision timeEquality);
-        std::tuple<HighPrecision, HighPrecision, HighPrecision> runStiffPhase();
+        bool toMatter(const EnergyDensity &rhoChi, HighPrecision rhoPhi, HighPrecision timeEquality);
         std::tuple<HighPrecision, HighPrecision, HighPrecision> runMatterPhase(HighPrecision t0);
         std::tuple<HighPrecision, HighPrecision, HighPrecision> runRadiationPhase(HighPrecision t0);
-        std::pair<HighPrecision, HighPrecision> getReheatingTemperatureAndTime(HighPrecision rhoChiRad,
-                                                                               HighPrecision t_eq);
+        std::pair<HighPrecision, HighPrecision> getReheatingTemperatureAndTime(HighPrecision t_eq);
+        std::tuple<bool, HighPrecision, HighPrecision, HighPrecision, bool> runStiffPhase();
+
     public:
         Simulation(const ModelParameters& p_);
         SimulationResults run();
