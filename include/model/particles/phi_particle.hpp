@@ -21,21 +21,21 @@ class PhiParticle
 {
     private:
         ModelParameters p;
-        std::map<HighPrecision, HighPrecision> rhoPhiCache;
+        std::map<double, double> rhoPhiCache;
         std::mutex cacheMutex;
-        HighPrecision initialRhoMatter;
-        HighPrecision initialRhoRadiation;
+        double initialRhoMatter;
+        double initialRhoRadiation;
     public:
         explicit PhiParticle(const ModelParameters& _p) : p{_p} {};
-        HighPrecision creationRate(HighPrecision t);
+        double creationRate(double t);
         EnergyDensity energyDensityStiff();
-        EnergyDensity energyDensityMatter(HighPrecision t0);
-        EnergyDensity energyDensityRadiation(HighPrecision t0);
+        EnergyDensity energyDensityMatter(double t0);
+        EnergyDensity energyDensityRadiation(double t0);
         // Getters and Setters to set initial values once obtained
-        void setInitialRhoMatter(const HighPrecision& rhoInit);
-        HighPrecision getInitialRhoMatter() const;
-        void setInitialRhoRadiation(const HighPrecision& rhoInit);
-        HighPrecision getInitialRhoRadiation() const;
+        void setInitialRhoMatter(const double& rhoInit);
+        double getInitialRhoMatter() const;
+        void setInitialRhoRadiation(const double& rhoInit);
+        double getInitialRhoRadiation() const;
 
 
 

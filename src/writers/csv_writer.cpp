@@ -42,8 +42,7 @@ std::string CSVWriter::toCSVRow(const SimulationResults& r)
 {
     std::ostringstream ss;
 
-    ss << std::fixed << std::setprecision(50)
-       << r.params.t0      << ',' << r.params.m         << ',' << r.params.lambda << ','
+    ss << r.params.t0      << ',' << r.params.m         << ',' << r.params.lambda << ','
        << r.params.b       << ',' << r.params.xi        << ',' << r.params.G_N    << ','
        << r.reheating_temp << ',' << r.reheating_time   << ',' << r.t_eq          << ','
        << r.rhoStiff_t_eq  << ',' << r.rhoPhiStiff_t_eq << ',' << r.rhoChi_t_eq   << ','

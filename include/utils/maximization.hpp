@@ -7,15 +7,15 @@
 using boost::math::tools::brent_find_minima;
 
 template<typename F>
-HighPrecision maximize(F&& f, HighPrecision min, HighPrecision max)
+double maximize(F&& f, double min, double max)
 {
-    const int digits = std::numeric_limits<HighPrecision>::digits;
+    const int digits = std::numeric_limits<double>::digits;
     auto result = brent_find_minima(
-        [&](HighPrecision t) {return -(std::forward<F>(f))(t);},
+        [&](double t) {return -(std::forward<F>(f))(t);},
         min,
         max,
         digits);
-    HighPrecision location = result.first;
+    double location = result.first;
     return location;
 }
 

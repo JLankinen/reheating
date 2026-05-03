@@ -44,30 +44,25 @@ int main()
     std::vector<ModelParameters> params;
     ModelParameters p;
 
-    std::vector<HighPrecision> lambdaValues{HighPrecision("0.1"),
-                                            HighPrecision("0.01"),
-                                            HighPrecision("0.001"),
-                                            HighPrecision("0.0001")
-                                            };
-    std::vector<HighPrecision> bValues{HighPrecision("10"), HighPrecision("1.0"), HighPrecision("0.1")};
-    std::vector<HighPrecision> xiValues{HighPrecision(0.0)};
-    std::vector<HighPrecision> mValues{};  // mass 10 all with no errors.
-
+    std::vector<double> lambdaValues{0.1, 0.01, 0.001, 0.0001, 0.00001, 0.000001, 0.0000001};
+    std::vector<double> bValues{10.0, 1.0, 0.1};
+    std::vector<double> xiValues{0.0, 1.0 / 6.0};  // Minimal and conformal coupling
+    std::vector<double> mValues{};
 
 
     // Generate mass points.
-    auto generateMassPoints = [&](HighPrecision start, HighPrecision end, int samples)
+    auto generateMassPoints = [&](double start, double end, int samples)
     {
-        HighPrecision step = pow(HighPrecision(10), HighPrecision(1.0) / samples);
-        for (HighPrecision m = start; m < end; m*=step)
+        double step = pow(10.0, 1.0 / samples);
+        for (double m = start; m < end; m*=step)
         {
             mValues.push_back(m);
         }
     };
-    // Generate more points in the low mass range where things are interesting.
 
-    generateMassPoints(HighPrecision("1"), HighPrecision("1e9"), 25);
-    generateMassPoints(HighPrecision("1e9"), HighPrecision("1e28"), 17);
+    // Generate more points in the low mass range where things are interesting.
+    generateMassPoints(1e0, 1e9, 100);  // Low range
+    generateMassPoints(1e9, 1e28, 60);  // High range
 
 
     for (const auto& lambda : lambdaValues)
@@ -89,7 +84,7 @@ int main()
     }
 
     // Insert filename you want to save results in the parentheses below.
-    auto outputWriter = std::make_unique<CSVWriter>("results.csv");
+    auto outputWriter = std::make_unique<CSVWriter>("test.csv");
 
     auto start = steady_clock::now();
     std::cout << "Beginning simulation with " << params.size() << " parameter combinations." << std::endl;

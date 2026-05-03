@@ -6,22 +6,22 @@
 #include "utils/integration.hpp"
 
 
-void ChiParticle::setInitialRhoMatter(const HighPrecision& rhoInit)
+void ChiParticle::setInitialRhoMatter(const double& rhoInit)
 {
     this->initialRhoMatter = rhoInit;
 }
 
-HighPrecision ChiParticle::getInitialRhoMatter() const
+double ChiParticle::getInitialRhoMatter() const
 {
     return initialRhoMatter;
 }
 
-void ChiParticle::setInitialRhoRadiation(const HighPrecision& rhoInit)
+void ChiParticle::setInitialRhoRadiation(const double& rhoInit)
 {
     this->initialRhoRadiation = rhoInit;
 }
 
-HighPrecision ChiParticle::getInitialRhoRadiation() const
+double ChiParticle::getInitialRhoRadiation() const
 {
     return initialRhoRadiation;
 }
@@ -29,37 +29,39 @@ HighPrecision ChiParticle::getInitialRhoRadiation() const
 EnergyDensity ChiParticle::energyDensityStiff()
 {   
     constexpr double n = 1.0; // For stiff matter universe, n = 1.
+    //constexpr double n = 0.0;
     ChiDecayRate chiDecay(this->p, n, this->p.t0);
-    return [this, chiDecay](HighPrecision t) -> HighPrecision
+    return [this, chiDecay](double t) -> double
     {
-        HighPrecision prefactor = 1 / pow(t, HighPrecision(4.0 / 3.0));
+        double prefactor = 1 / pow(t, 4.0 / 3.0);
         EnergyDensity rhoPhi = phiParticle->energyDensityStiff();
         
-        auto integrand = [&](HighPrecision tprime)
+        auto integrand = [&](double tprime)
         {
-            HighPrecision val = chiDecay(tprime) * rhoPhi(tprime)
-                                * pow(tprime, HighPrecision(4.0) / HighPrecision(3.0));
+            double val = chiDecay(tprime) * rhoPhi(tprime)
+                                * pow(tprime, 4.0 / 3.0);
             return val;
         };
     
-        HighPrecision integralResult = IntegrationUtils::integrate(integrand, this->p.t0, t);
+        double integralResult = IntegrationUtils::integrate(integrand, this->p.t0, t);
         return prefactor * integralResult;
     };
 }
 
 
-EnergyDensity ChiParticle::energyDensityMatter(HighPrecision t0)
+EnergyDensity ChiParticle::energyDensityMatter(double t0)
 {
     constexpr double n = 4.0; // n=4 for matter domination 
+    //constexpr double n = 0.0; 
     ChiDecayRate chiDecay(this->p, n, t0);
 
-    return [this, t0, chiDecay](HighPrecision t)->HighPrecision{
-        HighPrecision initialRho = this->getInitialRhoMatter() * pow(t0 / t, HighPrecision(8.0 / 3.0));
-        HighPrecision prefactor = pow((1 / t), HighPrecision(8.0 / 3.0));
+    return [this, t0, chiDecay](double t)->double{
+        double initialRho = this->getInitialRhoMatter() * pow(t0 / t, 8.0 / 3.0);
+        double prefactor = pow((1 / t), 8.0 / 3.0);
         EnergyDensity rhoMat = phiParticle->energyDensityMatter(t0);
-        auto integrand = [&] (HighPrecision tprime)
+        auto integrand = [&] (double tprime)
         {
-            HighPrecision val = chiDecay(tprime) * rhoMat(tprime) * pow(tprime, HighPrecision(8.0 / 3.0));
+            double val = chiDecay(tprime) * rhoMat(tprime) * pow(tprime, 8.0 / 3.0);
             return val;
         };
 
@@ -68,20 +70,21 @@ EnergyDensity ChiParticle::energyDensityMatter(HighPrecision t0)
     };
 }
 
-EnergyDensity ChiParticle::energyDensityRadiation(HighPrecision t0)
+EnergyDensity ChiParticle::energyDensityRadiation(double t0)
 {
     constexpr double n = 2.0; // n = 2 in radiation dominated universe
+    //constexpr double n = 0.0;
     ChiDecayRate chiDecay(this->p, n, t0);
 
-    return [this, t0, chiDecay](HighPrecision t)->HighPrecision{
-        HighPrecision time = pow(t0, (1.0 / 2.0)) / pow(t, (1.0 / 2.0));
-        HighPrecision initialRho = this->getInitialRhoRadiation() * pow(time, 4);  // Rho_chi_mat(tau_eq)
-        HighPrecision prefactor = 1 / pow(t, 2);
+    return [this, t0, chiDecay](double t)->double{
+        double time = pow(t0, (1.0 / 2.0)) / pow(t, (1.0 / 2.0));
+        double initialRho = this->getInitialRhoRadiation() * pow(time, 4);  // Rho_chi_mat(tau_eq)
+        double prefactor = 1 / pow(t, 2);
         EnergyDensity rhoRad = phiParticle->energyDensityRadiation(t0);
 
-        auto integrand = [&] (HighPrecision tprime)
+        auto integrand = [&] (double tprime)
         {
-            HighPrecision val = chiDecay(tprime) * rhoRad(tprime) * pow(tprime, 2.0);
+            double val = chiDecay(tprime) * rhoRad(tprime) * pow(tprime, 2.0);
             return val;
         };
 

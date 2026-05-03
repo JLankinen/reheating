@@ -20,10 +20,10 @@ class EqualTimeSolver
     private:
         EnergyDensity rho1;
         EnergyDensity rho2;
-        HighPrecision lowerLimit;
+        double lowerLimit;
         std::uintmax_t maxIter = 100;
     public:
-        EqualTimeSolver(EnergyDensity _rho1, EnergyDensity _rho2, HighPrecision _lowerLimit):
+        EqualTimeSolver(EnergyDensity _rho1, EnergyDensity _rho2, double _lowerLimit):
         rho1{_rho1}, rho2{_rho2}, lowerLimit{_lowerLimit} {};
        
         /**
@@ -31,8 +31,8 @@ class EqualTimeSolver
          * 
          * @return A tuple consisting of (t_eq, rho1(t_eq), rho2(t_eq))
          */
-        std::tuple<HighPrecision, HighPrecision, HighPrecision> getEqualTime();
-        std::optional<std::tuple<HighPrecision, HighPrecision, HighPrecision>> findEqualTime();
+        std::tuple<double, double, double> getEqualTime();
+        std::optional<std::tuple<double, double, double>> findEqualTime();
 
 }; 
 

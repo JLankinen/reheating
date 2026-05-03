@@ -27,7 +27,7 @@ SimulationResults Simulation::run()
     {
         // Set the initial values
         EnergyDensity rhoChiStiff = chi.energyDensityStiff();
-        HighPrecision rhoChiEq = rhoChiStiff(t_eq);
+        double rhoChiEq = rhoChiStiff(t_eq);
         phi->setInitialRhoMatter(rhoEq);
         chi.setInitialRhoMatter(rhoChiEq);
         
@@ -58,7 +58,7 @@ SimulationResults Simulation::run()
         // Now rhoEq is the value of massless particles (rho_chi) at t_eq.
         // Calculate value of massive particles at t_eq.
         EnergyDensity rhoPhiStiff = phi->energyDensityStiff();
-        HighPrecision rhoPhiEq = rhoPhiStiff(t_eq);
+        double rhoPhiEq = rhoPhiStiff(t_eq);
 
         // Set initial conditions
         phi->setInitialRhoRadiation(rhoPhiEq);
@@ -88,13 +88,13 @@ SimulationResults Simulation::run()
  * at the time of equality. If it is, Universe ends up in matter domination. Otherwise it ends
  * up in radiation domination.
  */
-bool Simulation::toMatter(const EnergyDensity &rhoChi, HighPrecision rhoPhi, HighPrecision timeEquality)
+bool Simulation::toMatter(const EnergyDensity &rhoChi, double rhoPhi, double timeEquality)
 {
     return rhoPhi > rhoChi(timeEquality);
 }
 
 
-std::tuple<bool, HighPrecision, HighPrecision, HighPrecision, bool> Simulation::runStiffPhase()
+std::tuple<bool, double, double, double, bool> Simulation::runStiffPhase()
 {
     EnergyDensity rhoChiStiff = chi.energyDensityStiff();
     EnergyDensity rhoPhiStiff = phi->energyDensityStiff();
@@ -143,7 +143,7 @@ std::tuple<bool, HighPrecision, HighPrecision, HighPrecision, bool> Simulation::
 
 
 
-std::tuple<HighPrecision, HighPrecision, HighPrecision> Simulation::runMatterPhase(HighPrecision t0)
+std::tuple<double, double, double> Simulation::runMatterPhase(double t0)
 {
     EnergyDensity rhoPhiMat = phi->energyDensityMatter(t0);
     EnergyDensity rhoChiMat = chi.energyDensityMatter(t0);
@@ -154,7 +154,7 @@ std::tuple<HighPrecision, HighPrecision, HighPrecision> Simulation::runMatterPha
     return {tau_eq, rhoPhiMatEq, rhoChiMatEq};
 }
 
-std::tuple<HighPrecision, HighPrecision, HighPrecision> Simulation::runRadiationPhase(HighPrecision t0)
+std::tuple<double, double, double> Simulation::runRadiationPhase(double t0)
 {
     EnergyDensity rhoPhiRad = phi->energyDensityRadiation(t0);
     EnergyDensity rhoChiRad = chi.energyDensityRadiation(t0);
@@ -164,11 +164,11 @@ std::tuple<HighPrecision, HighPrecision, HighPrecision> Simulation::runRadiation
     return {t_eq_rad, rhoPhiRadEq, rhoChiRadEq};
 }
 
-std::pair<HighPrecision, HighPrecision> Simulation::getReheatingTemperatureAndTime(HighPrecision tau_eq)
+std::pair<double, double> Simulation::getReheatingTemperatureAndTime(double tau_eq)
 {
     EnergyDensity rhoChiRad = this->chi.energyDensityRadiation(tau_eq);
-    auto t_rh = maximize(rhoChiRad, tau_eq, tau_eq * HighPrecision("1e5"));
-    HighPrecision reheatingTemperature = IntegrationUtils::integrate(this->chi.energyDensityRadiation(tau_eq),tau_eq, t_rh);
-    HighPrecision T_RH = pow(reheatingTemperature, HighPrecision(1.0 / 4.0));
+    auto t_rh = maximize(rhoChiRad, tau_eq, tau_eq * 1e5);
+    double reheatingTemperature = IntegrationUtils::integrate(this->chi.energyDensityRadiation(tau_eq),tau_eq, t_rh);
+    double T_RH = pow(reheatingTemperature, 1.0 / 4.0);
     return std::pair(T_RH, t_rh);
 }

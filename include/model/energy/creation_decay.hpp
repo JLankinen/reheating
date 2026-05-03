@@ -6,7 +6,7 @@
 /**
  * Creation rate for massive phi particles in a stiff matter dominated universe.
  */
-HighPrecision PhiCreationRate(ModelParameters& p, HighPrecision t);
+double PhiCreationRate(ModelParameters& p, double t);
 
 /**
  * @brief Computes the decay rate of the massless chi particle as a function of time.
@@ -21,13 +21,13 @@ class ChiDecayRate
 {
     private:
         const ModelParameters& p;
-        HighPrecision n;
-        HighPrecision t0;
-        HighPrecision alpha;
-        HighPrecision initialBessel;
+        double n;
+        double t0;
+        double alpha;
+        double initialBessel;
     public:
-        ChiDecayRate(ModelParameters& p_, HighPrecision n_, HighPrecision t0_);
+        ChiDecayRate(ModelParameters& p_, double n_, double t0_);
 
-        HighPrecision operator()(HighPrecision t) const;
+        double operator()(double t) const;
 };
 #endif

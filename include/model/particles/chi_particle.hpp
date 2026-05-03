@@ -23,21 +23,21 @@ class ChiParticle
     private:
         ModelParameters p;
         std::shared_ptr<PhiParticle> phiParticle;
-        HighPrecision initialRhoMatter;
-        HighPrecision initialRhoRadiation;
+        double initialRhoMatter;
+        double initialRhoRadiation;
     public:
         explicit ChiParticle(const ModelParameters& _p, std::shared_ptr<PhiParticle> phi) :
         p{_p}, phiParticle(std::move(phi)) {};
   
         // Returns RhoChiStiff as a function of t.
         EnergyDensity energyDensityStiff();
-        EnergyDensity energyDensityMatter(HighPrecision t0);
-        EnergyDensity energyDensityRadiation(HighPrecision t0);
+        EnergyDensity energyDensityMatter(double t0);
+        EnergyDensity energyDensityRadiation(double t0);
         // Getters and Setters to set initial values once obtained
-        void setInitialRhoMatter(const HighPrecision& rhoInit);
-        HighPrecision getInitialRhoMatter() const;
-        void setInitialRhoRadiation(const HighPrecision& rhoInit);
-        HighPrecision getInitialRhoRadiation() const;
+        void setInitialRhoMatter(const double& rhoInit);
+        double getInitialRhoMatter() const;
+        void setInitialRhoRadiation(const double& rhoInit);
+        double getInitialRhoRadiation() const;
 };
 
 
